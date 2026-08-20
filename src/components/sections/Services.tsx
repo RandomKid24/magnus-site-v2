@@ -44,9 +44,14 @@ export default function Services() {
                     <service.icon size={20} />
                   </div>
                   <h3 className="font-space text-xl font-bold text-white transition-colors uppercase tracking-tight mb-3">{service.title}</h3>
-                  <p className="font-sans text-[11px] text-gray-400 leading-relaxed uppercase tracking-[2px] font-bold max-w-[240px]">
-                    {service.description}
-                  </p>
+                  <ul className="space-y-1">
+                    {service.description.map((point, i) => (
+                      <li key={i} className="font-sans text-[11px] text-gray-400 leading-relaxed uppercase tracking-[1.5px] font-bold flex items-start gap-2">
+                        <span className="text-lime mt-[2px] shrink-0">—</span>
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </motion.div>
             ))}

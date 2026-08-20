@@ -16,7 +16,7 @@ export default function Quality() {
               viewport={{ once: true }}
               className="space-y-8 flex flex-col items-center"
             >
-              <h2 className="font-space text-[clamp(24px,3vw,36px)] leading-[1.2] font-bold uppercase tracking-tight italic text-center">
+              <h2 className="font-serif text-[clamp(36px,6vw,72px)] leading-[1.2] font-bold italic text-center text-white">
                 "Quality is not an act, it is a habit. <br />
                 In our workshop, <span className="text-lime">it is the law.</span>"
               </h2>
@@ -40,7 +40,7 @@ export default function Quality() {
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 justify-center">
                   <CheckCircle size={16} className="text-lime opacity-40 flex-shrink-0" />
-                  <span className="font-sans text-[10px] font-bold uppercase tracking-[2px] text-gray-400">{item}</span>
+                <span className="font-sans text-sm font-bold uppercase tracking-[2px] text-white/80">{item}</span>
                 </div>
               ))}
             </div>

@@ -16,55 +16,138 @@ import {
   Truck,
   Wrench,
   Factory,
-  CheckSquare
+  CheckSquare,
+  RotateCcw,
+  Gauge,
+  Drill,
+  ScanLine,
+  Minus,
+  CircleDot,
+  Cog
 } from 'lucide-react';
 
 export const services = [
   {
     title: "CNC Milling & Turning",
-    description: "Advanced CNC milling and turning for complex geometries and tight tolerances.",
-    icon: Layers,
+    description: [
+      "CNC Turning 1:",
+      "Jaw-chuck size: 200mm",
+      "Max turning length: 325mm",
+      "Bore size: 40mm",
+      "CNC Turning 2:",
+      "Chuck size: 250mm",
+      "Max turning length: 425mm",
+      "Bore size: 60mm",
+    ],
+    icon: RotateCcw,
+  },
+  {
+    title: "VMC Milling",
+    description: [
+      "VMC Milling 1:",
+      "Bed size: 800 x 450",
+      "X axis travel x Y axis travel x Z axis travel: 650 x 450 x 500",
+      "Controller: Siemens",
+      "VMC Milling 2:",
+      "Bed size: 1000 x 500",
+      "X x Y x Z: 800 x 500 x 500",
+      "4th axis to be added",
+    ],
+    icon: Cpu,
+  },
+  {
+    title: "DRO Milling",
+    description: [
+      "Bed size: 1270 x 254",
+      "X x Y x Z: 760 x 400 x 500 mm",
+    ],
+    icon: Gauge,
+  },
+  {
+    title: "Tapping M/C cum Drilling M/C",
+    description: [
+      "M6 – M16 capacity",
+    ],
+    icon: Drill,
+  },
+  {
+    title: "Tapping M/C",
+    description: [
+      "M2 – M6 capacity",
+    ],
+    icon: ScanLine,
+  },
+  {
+    title: "Bandsaw",
+    description: [
+      "5mm – 200mm cutting OD capacity",
+    ],
+    icon: Minus,
+  },
+  {
+    title: "Drilling & Tapping",
+    description: [
+      "Precise drilling and tapping services",
+      "For all industrial metal components",
+    ],
+    icon: CircleDot,
+  },
+  {
+    title: "Cutting & Parting",
+    description: [
+      "Efficient material processing and component parting",
+      "Minimal waste output",
+    ],
+    icon: Scissors,
+  },
+  {
+    title: "Laser Cutting",
+    description: [
+      "High-speed, high-accuracy laser cutting",
+      "Suitable for various sheet metal thicknesses",
+    ],
+    icon: Zap,
   },
   {
     title: "Switchgear Assembly",
-    description: "Expert assembly of industrial switchgear components with rigorous quality standards.",
+    description: [
+      "Expert assembly of industrial switchgear components",
+      "Rigorous quality standards throughout",
+    ],
     icon: Settings,
   },
   {
     title: "Switchgear Mechanism Manufacturing",
-    description: "High-precision mechanical components for advanced switchgear systems.",
-    icon: Cpu,
-  },
-  {
-    title: "Drilling & Tapping",
-    description: "Precise drilling and tapping services for all industrial metal components.",
-    icon: Target,
-  },
-  {
-    title: "Cutting & Parting",
-    description: "Efficient material processing and component parting with minimal waste.",
-    icon: Scissors,
+    description: [
+      "High-precision mechanical components",
+      "Designed for advanced switchgear systems",
+    ],
+    icon: Cog,
   },
   {
     title: "Welding & Fabrication",
-    description: "Structural and precision welding using TIG, MIG, and arc techniques.",
+    description: [
+      "Structural and precision welding",
+      "TIG, MIG, and arc techniques",
+    ],
     icon: Flame,
   },
   {
-    title: "Laser Cutting",
-    description: "High-speed, high-accuracy laser cutting for various sheet metal thicknesses.",
-    icon: Maximize,
-  },
-  {
     title: "Product Development",
-    description: "From concept to prototype, we help bring your industrial designs to life.",
+    description: [
+      "From concept to prototype",
+      "Full industrial design lifecycle support",
+    ],
     icon: PenTool,
   },
   {
     title: "Die & Mould Manufacturing",
-    description: "Custom die and mould manufacturing for casting and injection processes.",
+    description: [
+      "Custom die and mould manufacturing",
+      "Suitable for casting and injection processes",
+    ],
     icon: Box,
-  }
+  },
 ];
 
 export const philosophy = [
@@ -145,15 +228,35 @@ export const industries = [
 export const usps = [
   {
     title: "Precision Engineering",
-    description: "Delivering exact geometric fidelity with state-of-the-art CNC machining."
+    description: "We manufacture components with tight tolerances using advanced CNC and VMC machines. Every part is made to exact specifications — no shortcuts."
   },
   {
     title: "Rapid Turnaround",
-    description: "Streamlined processes ensuring quick delivery without compromising quality."
+    description: "Our streamlined production process means faster delivery without sacrificing quality. We respect your deadlines and plan accordingly."
   },
   {
-    title: "End-to-end Solutions",
-    description: "From prototyping to final assembly, we handle the entire manufacturing lifecycle."
+    title: "End-to-End Solutions",
+    description: "From prototyping to final assembly, we handle the entire manufacturing lifecycle under one roof — saving you time, cost, and coordination effort."
+  },
+  {
+    title: "Multi-Industry Experience",
+    description: "We serve switchgear, automobile, agriculture, poultry, and aeronautics industries. Our team understands the unique requirements of each sector."
+  },
+  {
+    title: "In-House Quality Control",
+    description: "We use calibrated instruments — digital verniers, micrometers, and dial gauges — to inspect every component before it leaves our facility."
+  },
+  {
+    title: "Flexible & Scalable",
+    description: "Whether it's a single prototype or a large production batch, we adapt to your volume requirements without compromising on consistency."
+  },
+  {
+    title: "Experienced Team",
+    description: "Our engineers and machinists bring years of hands-on experience in precision manufacturing, ensuring reliable output every time."
+  },
+  {
+    title: "Trusted by Leading Brands",
+    description: "We are a preferred manufacturing partner for top companies in electrical switchgear, automobile, and other critical industries."
   }
 ];
 
