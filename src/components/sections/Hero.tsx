@@ -1,11 +1,33 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
+import type { HeroData } from '@/lib/cms/blocks/schemas';
+
+const FALLBACK: HeroData = {
+  tagline: 'Engineering for the Micron Absolute',
+  button_text: 'Explore Site',
+  button_target: '#why-us',
+};
 
 export default function Hero({
-  scrollToId
+  scrollToId,
+  data,
 }: {
   scrollToId: (e: React.MouseEvent, id: string) => void;
+  data?: HeroData;
 }) {
+  const content = data ?? FALLBACK;
+  const isAnchor = content.button_target.startsWith('#');
+
+  const handleCta = (e: React.MouseEvent) => {
+    if (isAnchor) {
+      scrollToId(e, content.button_target.slice(1));
+    } else {
+      e.preventDefault();
+      window.location.href = content.button_target;
+    }
+  };
   return (
     <section 
       className="relative h-screen flex flex-col items-center justify-center bg-black overflow-hidden" 
@@ -64,7 +86,7 @@ export default function Hero({
           transition={{ delay: 0.8, duration: 1 }}
           className="font-sans text-[9px] md:text-[11px] text-gray-400 tracking-[5px] md:tracking-[7px] uppercase max-w-md mb-12 font-medium"
         >
-          Engineering for the Micron Absolute
+          {content.tagline}
         </motion.p>
 
         {/* Scroll CTA Button */}
@@ -76,10 +98,10 @@ export default function Hero({
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={(e) => scrollToId(e, 'why-us')}
+            onClick={handleCta}
             className="border border-white/20 hover:border-lime bg-transparent hover:bg-lime text-white hover:text-black font-bold text-[11px] tracking-[4px] uppercase px-12 py-4 transition-all duration-700 font-sans cursor-pointer shadow-sm"
           >
-            Explore Site
+            {content.button_text}
           </motion.button>
         </motion.div>
       </div>

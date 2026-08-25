@@ -1,13 +1,65 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
 import { Linkedin, Twitter, Facebook, ArrowUpRight, ShieldCheck, Mail, Phone, MapPin } from 'lucide-react';
 import { contactInfo } from '../../constants';
+import type { PublicNavigationItem } from '@/lib/cms/navigation';
+import type { SiteSettings } from '@/lib/cms/settings';
+
+const DEFAULT_ITEMS = ['Products', 'Solutions', 'Fleet', 'Gallery', 'About', 'Contact'];
 
 export default function Footer({
-  scrollToId
+  scrollToId,
+  items,
+  settings,
 }: {
   scrollToId: (e: React.MouseEvent, id: string) => void;
+  /** CMS-driven navigation; falls back to the original anchor menu. */
+  items?: PublicNavigationItem[];
+  settings?: SiteSettings;
 }) {
+  const identity = settings?.identity;
+  const contact = settings?.contact ?? contactInfo;
+  const social = settings?.social;
+
+  const navTargets = React.useMemo(() => {
+    if (!items || items.length === 0) {
+      return DEFAULT_ITEMS.map((label) => ({
+        label,
+        id: label.toLowerCase().replace(' ', '-'),
+        url: `#${label.toLowerCase().replace(' ', '-')}`,
+        external: false,
+        newTab: false,
+      }));
+    }
+    return items.map((item) => {
+      const isAnchor = item.url.startsWith('#');
+      return {
+        label: item.label,
+        id: isAnchor ? item.url.slice(1) : '',
+        url: item.url,
+        external: !isAnchor && /^https?:\/\//i.test(item.url),
+        newTab: item.opensInNewTab,
+      };
+    });
+  }, [items]);
+
+  const cmsSocials = [
+    ...(social?.linkedin ? [{ Icon: Linkedin, href: social.linkedin }] : []),
+    ...(social?.twitter ? [{ Icon: Twitter, href: social.twitter }] : []),
+    ...(social?.facebook ? [{ Icon: Facebook, href: social.facebook }] : []),
+  ];
+  // Fall back to the original set when the CMS has no social settings.
+  const socials =
+    cmsSocials.length > 0
+      ? cmsSocials
+      : [
+          { Icon: Linkedin, href: 'https://linkedin.com/company/magnus-enterprises' },
+          { Icon: Twitter, href: 'https://twitter.com/magnus_ent' },
+          { Icon: Facebook, href: 'https://facebook.com/magnus.enterprises.nashik' },
+        ];
+
   return (
     <footer className="relative py-24 px-[5%] bg-black text-white border-t border-white/10 overflow-hidden">
       {/* Background Dots & Glow */}
@@ -22,21 +74,21 @@ export default function Footer({
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 flex items-center justify-center relative select-none">
-                <img src="/logo.png" alt="Magnus Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(204,255,0,0.1)]" />
+                <img src={identity?.logo_url ?? '/logo.png'} alt="Magnus Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(204,255,0,0.1)]" />
               </div>
               <div className="flex flex-col -space-y-0.5">
-                <span className="font-space text-2xl font-bold tracking-tighter uppercase">Magnus</span>
-                <span className="font-sans text-[8px] font-bold tracking-[6px] uppercase text-lime">Enterprises</span>
+                <span className="font-space text-2xl font-bold tracking-tighter uppercase">{identity?.name ?? 'Magnus'}</span>
+                <span className="font-sans text-[8px] font-bold tracking-[6px] uppercase text-lime">{identity?.suffix ?? 'Enterprises'}</span>
               </div>
             </div>
             <p className="font-sans text-xs text-gray-400 uppercase tracking-widest font-bold leading-relaxed max-w-xs">
-              ISO 9001:2015 Certified Precision Machining & Switchgear Assembly Facility. Nashik, India.
+              {identity?.footer_blurb ?? 'ISO 9001:2015 Certified Precision Machining & Switchgear Assembly Facility. Nashik, India.'}
             </p>
             <div className="flex items-center gap-3 pt-2">
               <div className="w-8 h-8 flex items-center justify-center bg-zinc-950 border border-white/10 text-lime">
                 <ShieldCheck size={16} />
               </div>
-              <span className="font-space text-[10px] font-bold tracking-[3px] uppercase">QMS CERTIFIED</span>
+              <span className="font-space text-[10px] font-bold tracking-[3px] uppercase">{identity?.certification_label ?? 'QMS CERTIFIED'}</span>
             </div>
           </div>
 
@@ -46,22 +98,23 @@ export default function Footer({
               Site Navigation
             </h4>
             <ul className="space-y-3 list-none">
-              {['Products', 'Solutions', 'Fleet', 'Gallery', 'About', 'Contact'].map((item) => {
-                const id = item.toLowerCase().replace(' ', '-');
-                return (
-                  <li key={item}>
-                    <motion.a 
-                      whileHover={{ x: 4, color: "#CCFF00" }}
-                      href={`#${id}`} 
-                      className="group inline-flex items-center gap-2 font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 transition-colors duration-300"
-                      onClick={(e) => scrollToId(e, id)}
-                    >
-                      <span>{item}</span>
-                      <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </motion.a>
-                  </li>
-                );
-              })}
+              {navTargets.map((target) => (
+                <li key={target.label}>
+                  <motion.a 
+                    whileHover={{ x: 4, color: "#CCFF00" }}
+                    href={target.url}
+                    target={target.newTab || target.external ? '_blank' : undefined}
+                    rel={target.newTab || target.external ? 'noopener noreferrer' : undefined}
+                    className="group inline-flex items-center gap-2 font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 transition-colors duration-300"
+                    onClick={(e) => {
+                      if (target.id) scrollToId(e, target.id);
+                    }}
+                  >
+                    <span>{target.label}</span>
+                    <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </motion.a>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -87,20 +140,20 @@ export default function Footer({
             <ul className="space-y-4 list-none">
               <li className="flex items-center gap-3">
                 <Phone size={14} className="text-lime flex-shrink-0" />
-                <a href={`tel:${contactInfo.phone.replace(/\s/g, '')}`} className="font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 hover:text-white transition-colors">
-                  {contactInfo.phone}
+                <a href={`tel:${contact.phone.replace(/\s/g, '')}`} className="font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 hover:text-white transition-colors">
+                  {contact.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={14} className="text-lime flex-shrink-0" />
-                <a href={`mailto:${contactInfo.email}`} className="font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 hover:text-white transition-colors break-all">
-                  {contactInfo.email}
+                <a href={`mailto:${contact.email}`} className="font-sans text-[10px] font-bold tracking-[3px] uppercase text-gray-400 hover:text-white transition-colors break-all">
+                  {contact.email}
                 </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={14} className="text-lime flex-shrink-0 mt-0.5" />
                 <span className="font-sans text-[9px] font-bold tracking-[3px] uppercase text-gray-400 leading-relaxed">
-                  {contactInfo.address}
+                  {contact.address}
                 </span>
               </li>
             </ul>
@@ -117,11 +170,7 @@ export default function Footer({
 
           {/* Socials */}
           <div className="flex gap-6">
-            {[
-              { Icon: Linkedin, href: "https://linkedin.com/company/magnus-enterprises" },
-              { Icon: Twitter, href: "https://twitter.com/magnus_ent" },
-              { Icon: Facebook, href: "https://facebook.com/magnus.enterprises.nashik" }
-            ].map(({ Icon, href }, i) => (
+            {socials.map(({ Icon, href }, i) => (
               <motion.a 
                 key={i} 
                 whileHover={{ scale: 1.15, rotate: 5, color: "#CCFF00", borderColor: "#CCFF00" }}

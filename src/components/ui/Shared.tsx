@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion, AnimatePresence, useScroll, useSpring, useInView } from 'motion/react';
 import { ArrowUp } from 'lucide-react';

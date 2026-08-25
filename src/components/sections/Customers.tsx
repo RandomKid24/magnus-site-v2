@@ -1,21 +1,32 @@
-import { motion } from 'motion/react';
-import { customers } from '@/src/constants';
+'use client';
 
-export default function Customers() {
+import { motion } from 'motion/react';
+import { customers } from '@/constants';
+import type { CustomersData } from '@/lib/cms/blocks/schemas';
+
+const FALLBACK: CustomersData = {
+  title_plain: 'Our',
+  title_accent: 'Customers',
+  subtitle: 'Trusted by industry leaders across the globe.',
+  items: customers,
+};
+
+export default function Customers({ data }: { data?: CustomersData }) {
+  const content = data ?? FALLBACK;
   return (
     <section id="customers" className="py-16 bg-black overflow-hidden border-t border-white/10">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-6xl font-bold text-white uppercase tracking-tighter font-space">
-            Our <span className="text-lime">Customers</span>
+            {content.title_plain} <span className="text-lime">{content.title_accent}</span>
           </h2>
           <p className="text-gray-400 text-xl mt-6">
-            Trusted by industry leaders across the globe.
+            {content.subtitle}
           </p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-4">
-          {customers.map((customer, i) => (
+          {content.items.map((customer, i) => (
             <motion.div
               key={customer}
               initial={{ opacity: 0, scale: 0.9 }}

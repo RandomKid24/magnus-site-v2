@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesque:wght@300;400;500;600;700&family=Inter:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-space: "Space Grotesque", sans-serif;
+  --font-serif: "Space Grotesque", sans-serif;
+
+  --color-lime: #CCFF00;
+  --color-lime-dark: #82A300;
+  --color-brand-dark: #121212;
+  --color-brand-slate: #555555;
+  --color-off-white: #FCFAF7;
+  --color-brand-border: #E8E4DF;
+}
+
+@layer base {
+  ::selection {
+    @apply bg-lime text-brand-dark;
+  }
+  body {
+    @apply bg-zinc-950 text-white antialiased overflow-x-hidden relative;
+  }
+}
+
+.nav-link {
+  @apply relative text-[11px] font-bold tracking-[3px] uppercase text-white transition-colors duration-500 font-sans;
+}
+
+.nav-link::after {
+  content: "";
+  @apply absolute left-0 -bottom-1 w-0 h-[1.5px] bg-lime-dark transition-all duration-500 ease-out;
+}
+
+.nav-link:hover::after {
+  @apply w-full;
+}
+
+.nav-link:hover {
+  @apply text-lime-dark;
+}
+
+.btn-primary-custom {
+  @apply bg-white text-brand-dark font-bold text-[11px] tracking-[3px] uppercase px-12 py-5 transition-all duration-700 hover:bg-lime hover:text-brand-dark;
+}
+
+.btn-outline-custom {
+  @apply bg-transparent text-white font-bold text-[11px] tracking-[3px] uppercase border border-white/20 px-12 py-5 transition-all duration-700 hover:border-lime hover:text-lime;
+}
+
+.footer-link {
+  @apply relative text-white/40 font-sans text-[10px] font-bold tracking-[3px] uppercase transition-colors duration-300 hover:text-lime-dark;
+}
+
+.footer-link::after {
+  content: '';
+  @apply absolute bottom-[-4px] left-0 w-0 h-[1px] bg-lime-dark transition-all duration-300;
+}
+
+.footer-link:hover::after {
+  @apply w-full;
+}
+
+.bg-grain {
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+}
+
+.bg-dots {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.will-change-transform {
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   ADMIN PANEL THEME — bright, friendly UI scoped under `.admin-ui`.
+   The public site keeps its dark zinc/lime identity; only screens wrapped in
+   `.admin-ui` use this palette.
+   ========================================================================== */
+
+.admin-ui {
+  --adm-bg: #f2f5fb;
+  --adm-surface: #ffffff;
+  --adm-border: #dfe5f0;
+  --adm-text: #0f172a;
+  --adm-muted: #64748b;
+  --adm-primary: #4f46e5;
+  --adm-primary-hover: #4338ca;
+  --adm-primary-soft: #eef2ff;
+  --adm-success: #16a34a;
+  --adm-success-hover: #15803d;
+  --adm-success-soft: #dcfce7;
+  --adm-warning: #b45309;
+  --adm-warning-soft: #fef3c7;
+  --adm-danger: #dc2626;
+  --adm-danger-hover: #b91c1c;
+  --adm-danger-soft: #fee2e2;
+
+  min-height: 100vh;
+  background-color: var(--adm-bg);
+  color: var(--adm-text);
+}
+
+.admin-ui ::selection {
+  background-color: var(--adm-primary);
+  color: #ffffff;
+}
+
+.admin-ui .adm-card {
+  background-color: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 0.9rem;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.06), 0 8px 24px rgb(15 23 42 / 0.04);
+}
+
+.admin-ui .adm-title {
+  font-family: var(--font-space);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--adm-text);
+}
+
+.admin-ui .adm-subtitle {
+  color: var(--adm-muted);
+  font-size: 0.85rem;
+}
+
+.admin-ui .adm-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+  margin-bottom: 0.4rem;
+}
+
+.admin-ui .adm-input,
+.admin-ui .adm-select,
+.admin-ui textarea.adm-input {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid var(--adm-border);
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  color: var(--adm-text);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-ui .adm-input::placeholder {
+  color: #94a3b8;
+}
+
+.admin-ui .adm-input:focus,
+.admin-ui .adm-select:focus {
+  border-color: var(--adm-primary);
+  box-shadow: 0 0 0 3px var(--adm-primary-soft);
+}
+
+.admin-ui .adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.6rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.admin-ui .adm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-ui .adm-btn-primary {
+  background-color: var(--adm-primary);
+  color: #ffffff;
+}
+.admin-ui .adm-btn-primary:hover:not(:disabled) {
+  background-color: var(--adm-primary-hover);
+}
+
+.admin-ui .adm-btn-success {
+  background-color: var(--adm-success);
+  color: #ffffff;
+}
+.admin-ui .adm-btn-success:hover:not(:disabled) {
+  background-color: var(--adm-success-hover);
+}
+
+.admin-ui .adm-btn-danger {
+  background-color: var(--adm-danger);
+  color: #ffffff;
+}
+.admin-ui .adm-btn-danger:hover:not(:disabled) {
+  background-color: var(--adm-danger-hover);
+}
+
+.admin-ui .adm-btn-ghost {
+  background-color: var(--adm-surface);
+  color: var(--adm-text);
+  border-color: var(--adm-border);
+}
+.admin-ui .adm-btn-ghost:hover:not(:disabled) {
+  border-color: var(--adm-primary);
+  color: var(--adm-primary);
+  background-color: var(--adm-primary-soft);
+}
+
+.admin-ui .adm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem;
+  border-radius: 0.5rem;
+  color: var(--adm-muted);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.admin-ui .adm-icon-btn:hover:not(:disabled) {
+  background-color: var(--adm-primary-soft);
+  color: var(--adm-primary);
+}
+.admin-ui .adm-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.admin-ui .adm-icon-btn-danger:hover:not(:disabled) {
+  background-color: var(--adm-danger-soft);
+  color: var(--adm-danger);
+}
+
+.admin-ui .adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+}
+.admin-ui .adm-badge::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+.admin-ui .adm-badge-published {
+  background-color: var(--adm-success-soft);
+  color: var(--adm-success);
+}
+.admin-ui .adm-badge-draft {
+  background-color: var(--adm-warning-soft);
+  color: var(--adm-warning);
+}
+.admin-ui .adm-badge-archived {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.admin-ui .adm-table {
+  width: 100%;
+  text-align: left;
+}
+.admin-ui .adm-table thead th {
+  background-color: #f8fafc;
+  border-bottom: 1px solid var(--adm-border);
+  padding: 0.9rem 1.4rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--adm-muted);
+}
+.admin-ui .adm-table tbody td {
+  border-bottom: 1px solid #eef2f7;
+  padding: 1rem 1.4rem;
+  vertical-align: middle;
+}
+.admin-ui .adm-table tbody tr:hover {
+  background-color: #f8faff;
+}
+
+.admin-ui .adm-link {
+  color: var(--adm-primary);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.admin-ui .adm-link:hover {
+  color: var(--adm-primary-hover);
+  text-decoration: underline;
+}
+
+.admin-ui .adm-alert-error {
+  background-color: var(--adm-danger-soft);
+  border: 1px solid #fecaca;
+  color: var(--adm-danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
+}
+
+.admin-ui .adm-alert-success {
+  background-color: var(--adm-success-soft);
+  border: 1px solid #bbf7d0;
+  color: var(--adm-success);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
+}
+
+.admin-ui .adm-hint {
+  font-size: 0.72rem;
+  color: var(--adm-muted);
+  line-height: 1.5;
+}

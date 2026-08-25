@@ -1,8 +1,25 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
 import { machinery } from '../../constants';
+import type { FleetData } from '@/lib/cms/blocks/schemas';
 
-export default function Fleet() {
+const FALLBACK: FleetData = {
+  eyebrow: 'Infrastructure',
+  title_plain: 'OUR PRECISION',
+  title_accent: 'MACHINERY.',
+  note: 'Tier-1 equipment maintained to micron-level accuracy standards.',
+  machines: machinery,
+  spec_rows: [
+    { machine_class: 'CNC VMC', specification: '800x500x500 MM', application: 'Complex Profile Milling' },
+    { machine_class: 'CNC VMC', specification: '800x500x500 MM', application: 'Complex Profile Milling' },
+    { machine_class: 'CNC VMC', specification: '800x500x500 MM', application: 'Complex Profile Milling' },
+  ],
+};
+
+export default function Fleet({ data }: { data?: FleetData }) {
+  const content = data ?? FALLBACK;
   return (
     <section className="py-20 px-[5%] bg-black relative overflow-hidden scroll-mt-[100px]" id="fleet">
       <div className="absolute inset-0 bg-dots text-lime opacity-[0.05] pointer-events-none"></div>
@@ -18,7 +35,7 @@ export default function Fleet() {
                 className="flex items-center gap-4 mb-8"
               >
                 <div className="h-[1px] w-12 bg-lime"></div>
-                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">Infrastructure</span>
+                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">{content.eyebrow}</span>
               </motion.div>
 
               <motion.h2 
@@ -27,8 +44,8 @@ export default function Fleet() {
                 viewport={{ once: true }}
                 className="font-space text-[clamp(32px,4vw,56px)] leading-[1.1] text-white tracking-tighter font-bold uppercase"
               >
-                OUR PRECISION <br />
-                <span className="text-lime">MACHINERY.</span>
+                {content.title_plain} <br />
+                <span className="text-lime">{content.title_accent}</span>
               </motion.h2>
             </div>
             
@@ -39,13 +56,13 @@ export default function Fleet() {
                 viewport={{ once: true }}
                 className="font-sans text-[10px] text-gray-400 uppercase tracking-[4px] font-bold max-w-xs mb-4 leading-relaxed"
               >
-                Tier-1 equipment maintained to <span className="text-lime">micron-level</span> accuracy standards.
+                {content.note}
               </motion.p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5 border border-white/10 shadow-2xl relative">
-            {machinery.map((machine, i) => (
+            {content.machines.map((machine, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -72,11 +89,11 @@ export default function Fleet() {
                   </tr>
                 </thead>
                 <tbody className="text-white font-sans text-xs">
-                  {[1, 2, 3].map((_, i) => (
+                  {content.spec_rows.map((row, i) => (
                     <tr key={i} className="hover:bg-zinc-950 transition-colors border-b border-white/10">
-                      <td className="p-8 font-bold text-lime uppercase tracking-widest font-space">CNC VMC</td>
-                      <td className="p-8 text-gray-400 font-medium font-space">800x500x500 MM</td>
-                      <td className="p-8 text-gray-400 uppercase tracking-widest font-bold">Complex Profile Milling</td>
+                      <td className="p-8 font-bold text-lime uppercase tracking-widest font-space">{row.machine_class}</td>
+                      <td className="p-8 text-gray-400 font-medium font-space">{row.specification}</td>
+                      <td className="p-8 text-gray-400 uppercase tracking-widest font-bold">{row.application}</td>
                     </tr>
                   ))}
                 </tbody>

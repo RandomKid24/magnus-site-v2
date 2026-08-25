@@ -1,8 +1,15 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
+import type { GalleryData } from '@/lib/cms/blocks/schemas';
 
-export default function Gallery() {
-  const images = [
+const FALLBACK: GalleryData = {
+  eyebrow: 'Visuals',
+  title_plain: 'THE SHOP',
+  title_accent: 'FLOOR.',
+  note: 'Capturing the raw precision of our daily operations.',
+  images: [
     {
       url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800",
       title: "Vertical Milling",
@@ -18,7 +25,12 @@ export default function Gallery() {
       title: "CNC Turning",
       category: "Machining"
     }
-  ];
+  ]
+};
+
+export default function Gallery({ data }: { data?: GalleryData }) {
+  const content = data ?? FALLBACK;
+  const images = content.images;
 
   return (
     <section className="py-20 px-[5%] bg-black border-b border-white/10 relative overflow-hidden scroll-mt-[100px]" id="gallery">
@@ -35,7 +47,7 @@ export default function Gallery() {
                 className="flex items-center gap-4 mb-8"
               >
                 <div className="h-[1px] w-12 bg-lime"></div>
-                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">Visuals</span>
+                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">{content.eyebrow}</span>
               </motion.div>
 
               <motion.h2 
@@ -44,13 +56,13 @@ export default function Gallery() {
                 viewport={{ once: true }}
                 className="font-space text-[clamp(32px,4vw,56px)] leading-[1.1] text-white tracking-tighter font-bold uppercase"
               >
-                THE SHOP <br />
-                <span className="text-lime">FLOOR.</span>
+                {content.title_plain} <br />
+                <span className="text-lime">{content.title_accent}</span>
               </motion.h2>
             </div>
             
             <p className="font-sans text-[10px] font-bold text-gray-400 tracking-[4px] uppercase max-w-[200px] leading-relaxed">
-              Capturing the <span className="text-lime">raw precision</span> of our daily operations.
+              {content.note}
             </p>
           </div>
 

@@ -1,8 +1,34 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
+import { Target } from 'lucide-react';
 import { philosophy } from '../../constants';
+import { resolveIcon } from '@/components/cms/icon-map';
+import { renderInlineText } from '@/components/cms/inline-text';
+import type { AboutData } from '@/lib/cms/blocks/schemas';
 
-export default function About() {
+const FALLBACK: AboutData = {
+  established_label: 'Established 2012',
+  title_plain: 'THE',
+  title_accent: 'MAGNUS',
+  title_suffix: 'CORE.',
+  side_note: 'Engineered in Nashik. Deployed Globally.',
+  narrative_lead:
+    'Magnus Enterprises is a __high-precision__ manufacturing hub dedicated to the electrical, switchgear, and heavy engineering sectors.',
+  narrative_body:
+    'Since 2012, we have specialized in bridging the gap between complex design and physical reality. Our operations are governed by a single metric: **Geometric Fidelity.**',
+  pillars: philosophy.map((p) => ({
+    title: p.title,
+    description: p.description,
+    icon: p.icon === Target ? 'Target' : 'Shield',
+  })),
+  image_url:
+    'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=2000',
+};
+
+export default function About({ data }: { data?: AboutData }) {
+  const content = data ?? FALLBACK;
   return (
     <section className="py-20 px-[5%] bg-black relative overflow-hidden scroll-mt-[100px]" id="about">
       {/* Background technical grid - very subtle */}
@@ -21,19 +47,23 @@ export default function About() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-[1px] bg-lime"></div>
-                <span className="font-sans text-[10px] font-bold tracking-[8px] text-zinc-400 uppercase">Established 2012</span>
+                <span className="font-sans text-[10px] font-bold tracking-[8px] text-zinc-400 uppercase">{content.established_label}</span>
               </div>
               
               <h2 className="font-space text-5xl font-bold text-white tracking-tighter leading-none uppercase">
-                THE <br />
-                <span className="text-lime">MAGNUS</span> <br />
-                CORE.
+                {content.title_plain} <br />
+                <span className="text-lime">{content.title_accent}</span> <br />
+                {content.title_suffix}
               </h2>
               
               <div className="pt-8 border-t border-white/10 max-w-[200px]">
                 <p className="font-sans text-[10px] text-zinc-400 uppercase tracking-widest leading-relaxed font-bold">
-                  Engineered in Nashik. <br />
-                  Deployed Globally.
+                  {content.side_note.split('. ').map((line, i, arr) => (
+                    <React.Fragment key={i}>
+                      {line}{i < arr.length - 1 ? '.' : ''}
+                      {i < arr.length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
                 </p>
               </div>
             </motion.div>
@@ -48,15 +78,15 @@ export default function About() {
               className="max-w-2xl"
             >
               <h3 className="font-sans text-2xl font-light text-white leading-relaxed mb-10">
-                Magnus Enterprises is a <span className="font-bold underline decoration-lime decoration-4 underline-offset-8">high-precision</span> manufacturing hub dedicated to the electrical, switchgear, and heavy engineering sectors.
+                {renderInlineText(content.narrative_lead)}
               </h3>
               <p className="font-sans text-lg text-zinc-400 leading-relaxed font-light">
-                Since 2012, we have specialized in bridging the gap between complex design and physical reality. Our operations are governed by a single metric: <span className="text-white font-bold italic">Geometric Fidelity.</span>
+                {renderInlineText(content.narrative_body)}
               </p>
             </motion.div>
             
             <div className="grid sm:grid-cols-2 gap-x-12 gap-y-24">
-              {philosophy.map((item, index) => (
+              {content.pillars.map((item, index) => (
                 <motion.div 
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -70,7 +100,10 @@ export default function About() {
                   
                   <div className="flex flex-col gap-6 pt-4">
                     <div className="w-12 h-12 flex items-center justify-center bg-zinc-950 border border-white/10 text-white group-hover:bg-lime group-hover:text-black transition-all duration-500">
-                      <item.icon size={20} />
+                      {(() => {
+                        const Icon = resolveIcon(item.icon);
+                        return <Icon size={20} />;
+                      })()}
                     </div>
                     <h4 className="font-space text-xl font-bold text-white uppercase tracking-tight">{item.title}</h4>
                     <p className="font-sans text-[11px] text-zinc-400 leading-relaxed uppercase tracking-[2px] font-bold">
@@ -89,7 +122,7 @@ export default function About() {
               className="relative aspect-video bg-zinc-950 overflow-hidden border border-white/10 group shadow-2xl"
             >
               <img 
-                src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=2000" 
+                src={content.image_url} 
                 alt="Process Precision" 
                 className="w-full h-full object-cover grayscale brightness-90 contrast-125 group-hover:scale-105 transition-transform duration-1000"
               />

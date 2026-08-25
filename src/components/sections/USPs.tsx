@@ -1,26 +1,37 @@
-import { motion } from 'motion/react';
-import { usps } from '@/src/constants';
+'use client';
 
-export default function USPs() {
+import { motion } from 'motion/react';
+import { usps } from '@/constants';
+import type { UspsData } from '@/lib/cms/blocks/schemas';
+
+const FALLBACK: UspsData = {
+  title_plain: 'Our',
+  title_accent: "USP's",
+  intro: 'What sets us apart in the manufacturing landscape.',
+  items: usps,
+};
+
+export default function USPs({ data }: { data?: UspsData }) {
+  const content = data ?? FALLBACK;
   return (
     <section id="usps" className="py-16 bg-black overflow-hidden border-t border-white/10">
       <div className="container mx-auto px-6">
         <div className="flex flex-col lg:flex-row gap-12 mb-16 items-start">
-           <div className="lg:w-1/2">
-              <h3 className="text-5xl md:text-6xl font-bold text-white leading-[1] tracking-tighter uppercase font-space">
-                 Our <br />
-                 <span className="text-[#CCFF00] italic font-normal">USP's</span>
-              </h3>
-           </div>
-           <div className="lg:w-1/2 lg:pt-8">
-              <p className="text-gray-400 text-xl font-medium leading-tight mb-8 tracking-tight">
-                 What sets us apart in the manufacturing landscape.
-              </p>
-           </div>
-        </div>
+            <div className="lg:w-1/2">
+               <h3 className="text-5xl md:text-6xl font-bold text-white leading-[1] tracking-tighter uppercase font-space">
+                  {content.title_plain} <br />
+                  <span className="text-[#CCFF00] italic font-normal">{content.title_accent}</span>
+               </h3>
+            </div>
+            <div className="lg:w-1/2 lg:pt-8">
+               <p className="text-gray-400 text-xl font-medium leading-tight mb-8 tracking-tight">
+                  {content.intro}
+               </p>
+            </div>
+         </div>
 
-        <div className="grid md:grid-cols-3 gap-px bg-white/5 border border-white/10">
-           {usps.map((usp, i) => (
+         <div className="grid md:grid-cols-3 gap-px bg-white/5 border border-white/10">
+            {content.items.map((usp, i) => (
              <motion.div
                key={usp.title}
                initial={{ opacity: 0, y: 20 }}

@@ -1,18 +1,49 @@
+'use client';
+
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ExternalLink } from 'lucide-react';
+import type { PublicNavigationItem } from '@/lib/cms/navigation';
+
+const DEFAULT_ITEMS = ['Products', 'Solutions', 'Fleet', 'Gallery', 'About', 'Contact'];
 
 export default function Navbar({
   scrollToId,
   isMobileMenuOpen,
-  setIsMobileMenuOpen
+  setIsMobileMenuOpen,
+  items,
 }: {
   scrollToId: (e: React.MouseEvent, id: string) => void;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  /** CMS-driven navigation; falls back to the original anchor menu. */
+  items?: PublicNavigationItem[];
 }) {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState('');
+
+  // Normalize CMS items into render targets (anchor ids or plain URLs).
+  const navTargets = React.useMemo(() => {
+    if (!items || items.length === 0) {
+      return DEFAULT_ITEMS.map((label) => ({
+        label,
+        id: label.toLowerCase().replace(' ', '-'),
+        url: `#${label.toLowerCase().replace(' ', '-')}`,
+        external: false,
+        newTab: false,
+      }));
+    }
+    return items.map((item) => {
+      const isAnchor = item.url.startsWith('#');
+      return {
+        label: item.label,
+        id: isAnchor ? item.url.slice(1) : '',
+        url: item.url,
+        external: !isAnchor && /^https?:\/\//i.test(item.url),
+        newTab: item.opensInNewTab,
+      };
+    });
+  }, [items]);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -24,7 +55,7 @@ export default function Navbar({
   }, []);
 
   React.useEffect(() => {
-    const sections = ['home', 'products', 'solutions', 'fleet', 'gallery', 'about', 'contact'];
+    const sections = ['home', ...navTargets.map((t) => t.id).filter(Boolean)];
     const observerOptions = {
       root: null,
       rootMargin: '-50% 0px -50% 0px',
@@ -50,7 +81,46 @@ export default function Navbar({
         if (el) observer.unobserve(el);
       });
     };
-  }, []);
+  }, [navTargets]);
+
+  const renderItem = (
+    target: (typeof navTargets)[number],
+    classNameActive: string,
+    classNameInactive: string
+  ) => {
+    const isActive = target.id !== '' && activeSection === target.id;
+    const handleClick = (e: React.MouseEvent) => {
+      if (target.id) {
+        scrollToId(e, target.id);
+      }
+      // Non-anchor links navigate natively.
+    };
+
+    return (
+      <>
+        <motion.a
+          key={target.label}
+          whileHover={{ y: -2 }}
+          href={target.url}
+          target={target.newTab || target.external ? '_blank' : undefined}
+          rel={target.newTab || target.external ? 'noopener noreferrer' : undefined}
+          className={`text-[11px] font-bold tracking-[3px] uppercase transition-colors duration-500 font-sans ${
+            isActive ? classNameActive : classNameInactive
+          }`}
+          onClick={handleClick}
+        >
+          {target.label}
+        </motion.a>
+        {isActive && (
+          <motion.div
+            layoutId="activeNavIndicator"
+            className={`absolute bottom-0 left-0 right-0 h-[2px] ${isScrolled ? 'bg-lime-dark' : 'bg-lime'}`}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+          />
+        )}
+      </>
+    );
+  };
 
   return (
     <>
@@ -80,34 +150,15 @@ export default function Navbar({
         </motion.div>
         
         <ul className="hidden lg:flex gap-8 xl:gap-12 list-none">
-          {['Products', 'Solutions', 'Fleet', 'Gallery', 'About', 'Contact'].map((item) => {
-            const id = item.toLowerCase().replace(' ', '-');
-            const isActive = activeSection === id;
-            return (
-              <li key={item} className="relative py-2">
-                <motion.a 
-                  key={item} 
-                  whileHover={{ y: -2 }}
-                  href={`#${id}`} 
-                  className={`text-[11px] font-bold tracking-[3px] uppercase transition-colors duration-500 font-sans ${
-                    isActive 
-                      ? (isScrolled ? 'text-lime-dark' : 'text-lime') 
-                      : (isScrolled ? 'text-white hover:text-lime-dark' : 'text-white/70 hover:text-lime')
-                  }`}
-                  onClick={(e) => scrollToId(e, id)}
-                >
-                  {item}
-                </motion.a>
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeNavIndicator"
-                    className={`absolute bottom-0 left-0 right-0 h-[2px] ${isScrolled ? 'bg-lime-dark' : 'bg-lime'}`}
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </li>
-            );
-          })}
+          {navTargets.map((target) => (
+            <li key={target.label} className="relative py-2">
+              {renderItem(
+                target,
+                isScrolled ? 'text-lime-dark' : 'text-lime',
+                isScrolled ? 'text-white hover:text-lime-dark' : 'text-white/70 hover:text-lime'
+              )}
+            </li>
+          ))}
         </ul>
 
         <button className={`lg:hidden p-2 transition-colors duration-500 ${isScrolled ? 'text-white' : 'text-white'}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -127,24 +178,24 @@ export default function Navbar({
             <button className="absolute top-10 right-10 text-white" onClick={() => setIsMobileMenuOpen(false)}>
               <X size={32} />
             </button>
-            {['Products', 'Solutions', 'Fleet', 'Gallery', 'About', 'Contact'].map((item) => {
-              const id = item.toLowerCase().replace(' ', '-');
-              return (
-                <motion.a 
-                  key={item} 
-                  whileHover={{ scale: 1.1, color: "#CCFF00" }}
-                  whileTap={{ scale: 0.9 }}
-                  href={`#${id}`} 
-                  className="font-space text-4xl font-bold text-white transition-colors uppercase"
-                  onClick={(e) => {
-                    setIsMobileMenuOpen(false);
-                    scrollToId(e, id);
-                  }}
-                >
-                  {item}
-                </motion.a>
-              );
-            })}
+            {navTargets.map((target) => (
+              <motion.a 
+                key={target.label} 
+                whileHover={{ scale: 1.1, color: "#CCFF00" }}
+                whileTap={{ scale: 0.9 }}
+                href={target.url}
+                target={target.newTab || target.external ? '_blank' : undefined}
+                rel={target.newTab || target.external ? 'noopener noreferrer' : undefined}
+                className="font-space text-4xl font-bold text-white transition-colors uppercase inline-flex items-center gap-3"
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  if (target.id) scrollToId(e, target.id);
+                }}
+              >
+                {target.label}
+                {(target.external || target.newTab) && <ExternalLink size={20} className="opacity-50" />}
+              </motion.a>
+            ))}
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

@@ -1,8 +1,25 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'motion/react';
-import { Shield, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
+import type { QualityData } from '@/lib/cms/blocks/schemas';
 
-export default function Quality() {
+const FALLBACK: QualityData = {
+  quote_plain: '"Quality is not an act, it is a habit. In our workshop,',
+  quote_accent: 'it is the law."',
+  certification: 'ISO 9001:2015',
+  certification_sub: 'Certificated Facility',
+  checklist: [
+    'Multi-stage micron inspection',
+    'Calibrated measuring instruments',
+    'Raw material traceability',
+    'Zero-defect delivery policy'
+  ],
+};
+
+export default function Quality({ data }: { data?: QualityData }) {
+  const content = data ?? FALLBACK;
   return (
     <section className="py-20 px-[5%] bg-black text-white border-b border-white/10 relative overflow-hidden scroll-mt-[100px]">
       <div className="absolute inset-0 bg-dots text-white opacity-[0.02] pointer-events-none"></div>
@@ -17,27 +34,22 @@ export default function Quality() {
               className="space-y-8 flex flex-col items-center"
             >
               <h2 className="font-serif text-[clamp(36px,6vw,72px)] leading-[1.2] font-bold italic text-center text-white">
-                "Quality is not an act, it is a habit. <br />
-                In our workshop, <span className="text-lime">it is the law.</span>"
+                {content.quote_plain} <br />
+                <span className="text-lime">{content.quote_accent}</span>
               </h2>
               
               <div className="flex flex-col gap-1 items-center">
                 <span className="font-space text-2xl font-bold tracking-tight text-white uppercase">
-                  ISO 9001:2015
+                  {content.certification}
                 </span>
                 <span className="font-sans text-sm font-bold text-gray-400 uppercase tracking-[4px]">
-                  Certificated Facility
+                  {content.certification_sub}
                 </span>
               </div>
             </motion.div>
 
             <div className="grid sm:grid-cols-2 gap-6 mt-12 max-w-2xl mx-auto w-full">
-              {[
-                "Multi-stage micron inspection",
-                "Calibrated measuring instruments",
-                "Raw material traceability",
-                "Zero-defect delivery policy"
-              ].map((item, i) => (
+              {content.checklist.map((item, i) => (
                 <div key={i} className="flex items-center gap-3 justify-center">
                   <CheckCircle size={16} className="text-lime opacity-40 flex-shrink-0" />
                 <span className="font-sans text-sm font-bold uppercase tracking-[2px] text-white/80">{item}</span>

@@ -1,9 +1,26 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { contactInfo } from '../../constants';
+import type { ContactData } from '@/lib/cms/blocks/schemas';
 
-export default function Contact() {
+const FALLBACK: ContactData = {
+  eyebrow: 'Inquiries',
+  title_plain: 'START A',
+  title_accent: 'PRECISION PROJECT.',
+};
+
+export default function Contact({
+  data,
+  contact,
+}: {
+  data?: ContactData;
+  contact?: { email: string; phone: string; address: string };
+}) {
+  const content = data ?? FALLBACK;
+  const info = contact ?? contactInfo;
   const [formState, setFormState] = useState<'idle' | 'submitting' | 'success'>('idle');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -25,7 +42,7 @@ export default function Contact() {
                 className="flex items-center gap-4 mb-8"
               >
                 <div className="h-[1px] w-12 bg-lime"></div>
-                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">Inquiries</span>
+                <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">{content.eyebrow}</span>
               </motion.div>
 
               <motion.h2 
@@ -34,8 +51,8 @@ export default function Contact() {
                 viewport={{ once: true }}
                 className="font-space text-[clamp(40px,5vw,72px)] leading-[1] text-white tracking-tighter mb-12 font-bold uppercase"
               >
-                START A <br />
-                <span className="text-lime">PRECISION</span> PROJECT.
+                {content.title_plain} <br />
+                <span className="text-lime">{content.title_accent}</span>
               </motion.h2>
 
               <div className="space-y-12">
@@ -45,7 +62,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Email Baseline</span>
-                    <a href={`mailto:${contactInfo.email}`} className="font-space text-xl text-white hover:text-lime transition-colors">{contactInfo.email}</a>
+                    <a href={`mailto:${info.email}`} className="font-space text-xl text-white hover:text-lime transition-colors">{info.email}</a>
                   </div>
                 </div>
 
@@ -55,7 +72,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Direct Line</span>
-                    <a href={`tel:${contactInfo.phone.replace(/\s/g, '')}`} className="font-space text-xl text-white hover:text-lime transition-colors">{contactInfo.phone}</a>
+                    <a href={`tel:${info.phone.replace(/\s/g, '')}`} className="font-space text-xl text-white hover:text-lime transition-colors">{info.phone}</a>
                   </div>
                 </div>
 
@@ -65,7 +82,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Base Operations</span>
-                    <p className="font-sans text-xs text-gray-400 leading-relaxed uppercase tracking-widest font-bold max-w-xs">{contactInfo.address}</p>
+                    <p className="font-sans text-xs text-gray-400 leading-relaxed uppercase tracking-widest font-bold max-w-xs">{info.address}</p>
                   </div>
                 </div>
               </div>

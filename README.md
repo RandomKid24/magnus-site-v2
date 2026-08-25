@@ -104,6 +104,26 @@ magnus-enterprise-site/
 
 ---
 
+## 🗄️ CMS Setup (Supabase + Cloudinary)
+
+The site includes a built-in headless CMS at `/admin`. To activate it:
+
+1. **Create a Supabase project** (https://supabase.com) and a **Cloudinary account** (https://cloudinary.com).
+2. **Run the database migrations**: paste each file from `supabase/migrations/` into the Supabase SQL Editor, in numbered order (see `supabase/migrations/README.md`).
+3. **Configure environment variables**: copy `.env.example` to `.env.local` and fill in the Supabase URL/keys, Cloudinary keys, and admin bootstrap credentials.
+4. **Create the first administrator**: `npm run create-admin`
+5. Start the app (`npm run dev`) and log in at `/admin/login`.
+
+### How content works
+
+- The public site renders **exactly as before** until you publish CMS pages.
+- Create a page with slug `home` in `/admin/pages`, add blocks (Hero, Features, Products…), publish — the homepage is now database-driven.
+- Any other published page appears at `/{slug}` automatically.
+- Navbar/footer menus, contact details and social links are editable under Navigation & Settings.
+- Publishing revalidates cached pages instantly (ISR + targeted `revalidatePath`).
+
+---
+
 ## 📐 Design & Layout
 
 Detailed specifications regarding color theory (Lime + Slate), grid rules, blueprint textures, typography hierarchy, and transition timings can be found in the [design.md](file:///Users/ady/Documents/magnus-enterprise-site/design.md) file.

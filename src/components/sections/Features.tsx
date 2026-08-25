@@ -1,7 +1,10 @@
+'use client';
+
 import { motion } from 'motion/react';
-import { whyChooseUs } from '@/src/constants';
+import { whyChooseUs } from '@/constants';
 import { ShieldCheck, Cpu, Target, Users, Box, PenTool, Truck } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
+import type { FeaturesData } from '@/lib/cms/blocks/schemas';
 
 const icons = [ShieldCheck, Cpu, Target, Users, Box, PenTool, Truck];
 
@@ -15,6 +18,13 @@ const descriptions = [
   "Streamlined processes and dedicated logistics ensure products are delivered exactly when needed."
 ];
 
+const FALLBACK: FeaturesData = {
+  eyebrow: 'Advantages',
+  title_plain: 'Why Choose',
+  title_accent: 'Us?',
+  items: whyChooseUs.map((title, i) => ({ title, description: descriptions[i] ?? '' })),
+};
+
 // Tailwind classes for the bento grid spans
 const bentoSpans = [
   "md:col-span-2 md:row-span-2", // 0: Large square
@@ -26,7 +36,8 @@ const bentoSpans = [
   "md:col-span-1 md:row-span-1", // 6: Small square
 ];
 
-export default function Features() {
+export default function Features({ data }: { data?: FeaturesData }) {
+  const content = data ?? FALLBACK;
   return (
     <section id="why-us" className="py-20 px-[5%] bg-black border-b border-white/10 scroll-mt-[100px]">
       <div className="container-custom">
@@ -39,7 +50,7 @@ export default function Features() {
               className="flex items-center gap-4 mb-8"
             >
               <div className="h-[1px] w-12 bg-lime"></div>
-              <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">Advantages</span>
+              <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">{content.eyebrow}</span>
             </motion.div>
 
             <motion.h2 
@@ -48,13 +59,13 @@ export default function Features() {
               viewport={{ once: true }}
               className="font-space text-[clamp(32px,4vw,56px)] leading-[1.1] text-white tracking-tighter font-bold uppercase"
             >
-               Why Choose <br />
-               <span className="text-lime">Us?</span>
+               {content.title_plain} <br />
+               <span className="text-lime">{content.title_accent}</span>
             </motion.h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[240px]">
-            {whyChooseUs.map((feature, index) => {
+            {content.items.map((feature, index) => {
               const Icon = icons[index % icons.length];
               const spanClass = bentoSpans[index];
               const isLarge = index === 0;
@@ -90,13 +101,13 @@ export default function Features() {
                         "font-space font-bold text-white transition-colors uppercase tracking-tight mb-3",
                         isLarge ? "text-3xl lg:text-4xl" : "text-xl"
                       )}>
-                        {feature}
+                        {feature.title}
                       </h3>
                       <p className={cn(
                         "font-sans text-gray-400 leading-relaxed font-medium",
                         isLarge ? "text-sm max-w-md" : "text-xs max-w-[240px]"
                       )}>
-                        {descriptions[index]}
+                        {feature.description}
                       </p>
                     </div>
                   </div>
