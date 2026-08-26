@@ -166,23 +166,23 @@ function ListField({
 
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
           {field.label} ({items.length})
         </span>
         <button
           type="button"
           onClick={addItem}
           disabled={!!field.maxItems && items.length >= field.maxItems}
-          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 disabled:opacity-40 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-sm"
         >
-          <Plus size={13} /> Add
+          <Plus size={14} /> Add {field.label.replace(/s$/, '')}
         </button>
       </div>
 
       <div className="divide-y divide-slate-100">
         {items.map((item, index) => (
-          <div key={index} className="p-3 space-y-3">
+          <div key={index} className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-indigo-600 truncate max-w-[60%]">
                 {String(item[field.itemLabelKey] ?? `Item ${index + 1}`) || `Item ${index + 1}`}
@@ -192,27 +192,27 @@ function ListField({
                   type="button"
                   onClick={() => moveItem(index, -1)}
                   disabled={index === 0}
-                  className="adm-icon-btn"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
                   title="Move up"
                 >
-                  <ArrowUp size={13} />
+                  <ArrowUp size={14} />
                 </button>
                 <button
                   type="button"
                   onClick={() => moveItem(index, 1)}
                   disabled={index === items.length - 1}
-                  className="adm-icon-btn"
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
                   title="Move down"
                 >
-                  <ArrowDown size={13} />
+                  <ArrowDown size={14} />
                 </button>
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="adm-icon-btn adm-icon-btn-danger"
+                  className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
                   title="Remove"
                 >
-                  <Trash2 size={13} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
@@ -230,7 +230,16 @@ function ListField({
           </div>
         ))}
         {items.length === 0 && (
-          <p className="px-3 py-4 adm-hint">No items yet — click Add.</p>
+          <div className="px-4 py-8 text-center">
+            <p className="text-sm text-slate-400 mb-3">No items yet.</p>
+            <button
+              type="button"
+              onClick={addItem}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer transition-colors shadow-sm"
+            >
+              <Plus size={14} /> Add First {field.label.replace(/s$/, '')}
+            </button>
+          </div>
         )}
       </div>
     </div>

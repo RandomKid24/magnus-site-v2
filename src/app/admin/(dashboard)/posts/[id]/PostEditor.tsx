@@ -7,6 +7,7 @@ import {
   ArrowUp,
   Check,
   Copy,
+  Eye,
   Globe,
   Image as ImageIcon,
   Plus,
@@ -433,72 +434,81 @@ export default function PostEditor({
                 <button
                   key={type}
                   onClick={() => setBlocks([...blocks, newBlock(type)])}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:border-indigo-400 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold px-3 py-2 cursor-pointer transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-dashed border-slate-300 bg-white hover:border-indigo-400 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-xs font-bold px-4 py-2.5 cursor-pointer transition-colors"
                 >
-                  <Plus size={12} /> {BLOCK_TYPE_META[type].label}
+                  <Plus size={14} /> {BLOCK_TYPE_META[type].label}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Action bar */}
-        <div className="sticky bottom-4 adm-card p-4 flex flex-wrap items-center gap-3 shadow-lg z-10">
-          <button onClick={handleSave} disabled={pending} className="adm-btn adm-btn-primary">
-            <Save size={15} />
-            {pending ? 'Saving…' : status === 'published' ? 'Save & Update Site' : 'Save'}
-          </button>
-
-          {status !== 'published' && (
-            <button onClick={() => handleStatusChange('published')} disabled={pending} className="adm-btn adm-btn-success">
-              <Globe size={15} /> Publish
-            </button>
-          )}
-          {status === 'published' && (
-            <>
-              <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-ghost">
-                View Live
-              </a>
+        {/* Save bar */}
+        <div className="sticky bottom-4 z-10">
+          <div className="adm-card p-4 shadow-xl border border-slate-200">
+            <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() =>
-                  setConfirmAction({
-                    label: 'Unpublish',
-                    message: 'This will remove the post from the live blog. You can re-publish it later.',
-                    fn: () => handleStatusChange('draft'),
-                  })
-                }
+                onClick={handleSave}
                 disabled={pending}
-                className="adm-btn adm-btn-ghost"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md"
               >
-                Unpublish
+                <Save size={16} />
+                {pending ? 'Saving…' : status === 'published' ? 'Save & Update Site' : 'Save Draft'}
               </button>
-            </>
-          )}
-          {status !== 'archived' && (
-            <button
-              onClick={() =>
-                setConfirmAction({
-                  label: 'Archive',
-                  message: 'This will archive the post. It will no longer appear on the live blog.',
-                  fn: () => handleStatusChange('archived'),
-                })
-              }
-              disabled={pending}
-              className="adm-btn adm-btn-ghost"
-            >
-              Archive
-            </button>
-          )}
 
-          <span className="ml-auto text-[11px] font-semibold text-slate-400">
-            {pending ? (
-              <span className="text-indigo-500">Saving…</span>
-            ) : lastSaved ? (
-              <span>Saved {lastSaved}</span>
-            ) : changed ? (
-              <span className="text-amber-500">Unsaved changes</span>
-            ) : null}
-          </span>
+              {status !== 'published' ? (
+                <button
+                  onClick={() => handleStatusChange('published')}
+                  disabled={pending}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all shadow-md"
+                >
+                  <Globe size={16} /> Publish to Live Site
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors">
+                    <Eye size={14} /> View Live
+                  </a>
+                  <button
+                    onClick={() =>
+                      setConfirmAction({
+                        label: 'Unpublish',
+                        message: 'This will remove the post from the live blog. You can re-publish it later.',
+                        fn: () => handleStatusChange('draft'),
+                      })
+                    }
+                    disabled={pending}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-500 hover:text-amber-600 hover:border-amber-300 transition-colors"
+                  >
+                    Unpublish
+                  </button>
+                  <button
+                    onClick={() =>
+                      setConfirmAction({
+                        label: 'Archive',
+                        message: 'This will archive the post. It will no longer appear on the live blog.',
+                        fn: () => handleStatusChange('archived'),
+                      })
+                    }
+                    disabled={pending}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-300 transition-colors"
+                  >
+                    Archive
+                  </button>
+                </div>
+              )}
+
+              <span className="ml-auto text-xs font-semibold text-slate-400">
+                {pending ? (
+                  <span className="text-indigo-500">Saving…</span>
+                ) : lastSaved ? (
+                  <span>Saved {lastSaved}</span>
+                ) : changed ? (
+                  <span className="text-amber-500">Unsaved changes</span>
+                ) : null}
+              </span>
+            </div>
+          </div>
         </div>
 
       {/* Confirm dialog */}
