@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -20,6 +20,8 @@ import {
 import { cn } from '@/lib/utils';
 import { savePostAction, setPostStatusAction } from '../actions';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { showToast } from '@/components/admin/Toast';
 import type { Category, MediaItem, PostContentBlock } from '@/lib/cms/types';
 
 const BLOCK_TYPE_META: Record<
@@ -214,8 +216,9 @@ export default function PostEditor({
   const [status, setStatus] = useState(initialStatus);
   const [blocks, setBlocks] = useState<PostContentBlock[]>(initialBlocks);
   const [coverPickerOpen, setCoverPickerOpen] = useState(false);
-  const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const [confirmAction, setConfirmAction] = useState<{ label: string; message: string; fn: () => void } | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
 
   const meta = () => ({
     title,
@@ -225,42 +228,60 @@ export default function PostEditor({
     category_id: categoryId,
   });
 
-  const handleSave = () => {
-    setMessage(null);
+  const handleSave = useCallback(() => {
     startTransition(async () => {
       const result = await savePostAction(postId, meta(), { blocks });
-      if (result.error) setMessage({ kind: 'error', text: result.error });
-      else {
-        setMessage({ kind: 'success', text: status === 'published' ? 'Saved — live article updated.' : 'Saved.' });
+      if (result.error) {
+        showToast('error', result.error);
+      } else {
+        const now = new Date();
+        setLastSaved(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        showToast('success', status === 'published' ? 'Saved — live article updated.' : 'Saved.');
         router.refresh();
       }
     });
-  };
+  }, [postId, meta, blocks, status, router]);
 
   const handleStatusChange = (next: 'draft' | 'published' | 'archived') => {
-    setMessage(null);
     startTransition(async () => {
       const saved = await savePostAction(postId, meta(), { blocks });
       if (saved.error) {
-        setMessage({ kind: 'error', text: saved.error });
+        showToast('error', saved.error);
         return;
       }
       const result = await setPostStatusAction(postId, next);
       if (result.error) {
-        setMessage({ kind: 'error', text: result.error });
+        showToast('error', result.error);
         return;
       }
       setStatus(next);
-      setMessage({
-        kind: 'success',
-        text:
-          next === 'published'
-            ? 'Published! Your article is now live at /blog.'
-            : `Post ${next}.`,
-      });
+      showToast(
+        'success',
+        next === 'published'
+          ? 'Published! Your article is now live at /blog.'
+          : `Post ${next}.`
+      );
       router.refresh();
     });
   };
+
+  // Autosave: debounce saves while editing.
+  const contentJson = JSON.stringify(blocks);
+  const changed =
+    title !== initialTitle ||
+    slug !== initialSlug ||
+    excerpt !== initialExcerpt ||
+    coverUrl !== initialCoverUrl ||
+    categoryId !== initialCategoryId ||
+    contentJson !== JSON.stringify(initialBlocks);
+
+  useEffect(() => {
+    if (!changed || pending) return;
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [changed, pending, handleSave]);
 
   const updateBlock = (index: number, next: PostContentBlock) => {
     const copy = [...blocks];
@@ -277,8 +298,7 @@ export default function PostEditor({
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,640px)_1fr] gap-6 items-start">
-      <div className="space-y-6 min-w-0">
+    <div className="space-y-6">
         {/* Meta */}
         <div className="adm-card p-5 space-y-4">
           <h2 className="adm-title text-base">Article Details</h2>
@@ -439,86 +459,61 @@ export default function PostEditor({
               <a href={`/blog/${slug}`} target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-ghost">
                 View Live
               </a>
-              <button onClick={() => handleStatusChange('draft')} disabled={pending} className="adm-btn adm-btn-ghost">
+              <button
+                onClick={() =>
+                  setConfirmAction({
+                    label: 'Unpublish',
+                    message: 'This will remove the post from the live blog. You can re-publish it later.',
+                    fn: () => handleStatusChange('draft'),
+                  })
+                }
+                disabled={pending}
+                className="adm-btn adm-btn-ghost"
+              >
                 Unpublish
               </button>
             </>
           )}
           {status !== 'archived' && (
-            <button onClick={() => handleStatusChange('archived')} disabled={pending} className="adm-btn adm-btn-ghost">
+            <button
+              onClick={() =>
+                setConfirmAction({
+                  label: 'Archive',
+                  message: 'This will archive the post. It will no longer appear on the live blog.',
+                  fn: () => handleStatusChange('archived'),
+                })
+              }
+              disabled={pending}
+              className="adm-btn adm-btn-ghost"
+            >
               Archive
             </button>
           )}
 
-          {message && (
-            <span
-              role="status"
-              className={cn(
-                'ml-auto flex items-center gap-1.5 text-xs font-bold rounded-lg px-3 py-1.5',
-                message.kind === 'error' ? 'adm-alert-error' : 'adm-alert-success'
-              )}
-            >
-              {message.kind === 'success' && <Check size={13} />}
-              {message.text}
-            </span>
-          )}
+          <span className="ml-auto text-[11px] font-semibold text-slate-400">
+            {pending ? (
+              <span className="text-indigo-500">Saving…</span>
+            ) : lastSaved ? (
+              <span>Saved {lastSaved}</span>
+            ) : changed ? (
+              <span className="text-amber-500">Unsaved changes</span>
+            ) : null}
+          </span>
         </div>
-      </div>
 
-      {/* Right column: live preview of rendered content */}
-      <div className="hidden xl:block xl:sticky xl:top-6">
-        <h2 className="adm-label mb-3">Content Preview</h2>
-        <div className="adm-card p-8 h-[calc(100vh-140px)] overflow-y-auto max-w-none">
-          {title && (
-            <h1 className="font-space text-3xl font-bold tracking-tight mb-6 text-slate-900">{title}</h1>
-          )}
-          {blocks.map((block, i) => {
-            switch (block.type) {
-              case 'paragraph':
-                return (
-                  <p key={i} className="text-sm text-slate-600 leading-relaxed mb-4">
-                    {block.text}
-                  </p>
-                );
-              case 'heading':
-                return block.level === 2 ? (
-                  <h2 key={i} className="font-space text-xl font-bold tracking-tight mt-8 mb-3 text-slate-900">
-                    {block.text}
-                  </h2>
-                ) : (
-                  <h3 key={i} className="font-space text-base font-bold tracking-tight mt-6 mb-2 text-slate-900">
-                    {block.text}
-                  </h3>
-                );
-              case 'quote':
-                return (
-                  <blockquote key={i} className="border-l-4 border-indigo-500 pl-4 my-6 italic text-slate-600">
-                    {block.text}
-                  </blockquote>
-                );
-              case 'list':
-                return block.ordered ? (
-                  <ol key={i} className="list-decimal pl-6 space-y-1.5 mb-4 text-sm text-slate-600">
-                    {block.items.map((it, j) => (
-                      <li key={j}>{it}</li>
-                    ))}
-                  </ol>
-                ) : (
-                  <ul key={i} className="list-disc pl-6 space-y-1.5 mb-4 text-sm text-slate-600">
-                    {block.items.map((it, j) => (
-                      <li key={j}>{it}</li>
-                    ))}
-                  </ul>
-                );
-              case 'image':
-                return block.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={block.url} alt={block.alt} className="my-4 rounded-lg border border-slate-200" />
-                ) : null;
-            }
-          })}
-        </div>
-      </div>
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={!!confirmAction}
+        title={confirmAction?.label ?? ''}
+        message={confirmAction?.message ?? ''}
+        confirmLabel={confirmAction?.label}
+        variant="danger"
+        onConfirm={() => {
+          confirmAction?.fn();
+          setConfirmAction(null);
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }

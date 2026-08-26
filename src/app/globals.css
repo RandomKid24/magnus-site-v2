@@ -330,3 +330,28 @@
   color: var(--adm-muted);
   line-height: 1.5;
 }
+
+/* Keyboard focus indicator for accessibility */
+.admin-ui .adm-btn:focus-visible,
+.admin-ui .adm-btn-primary:focus-visible,
+.admin-ui .adm-btn-success:focus-visible,
+.admin-ui .adm-btn-danger:focus-visible,
+.admin-ui .adm-btn-ghost:focus-visible,
+.admin-ui .adm-icon-btn:focus-visible,
+.admin-ui .adm-link:focus-visible,
+.admin-ui .adm-input:focus-visible,
+.admin-ui .adm-select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--adm-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default focus ring for mouse users */
+.admin-ui .adm-btn:focus:not(:focus-visible),
+.admin-ui .adm-icon-btn:focus:not(:focus-visible),
+.admin-ui .adm-link:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}

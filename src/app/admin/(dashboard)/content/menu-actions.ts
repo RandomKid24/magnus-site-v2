@@ -52,7 +52,10 @@ export async function createNavItemAction(
     position: (last?.[0]?.position ?? -1) + 1,
   });
 
-  if (error) return { error: `Could not add item: ${error.message}` };
+  if (error) {
+    console.error('[CMS] createNavItemAction failed:', error.message);
+    return { error: `Could not add item: ${error.message}` };
+  }
   refreshMenus();
   return { success: 'Added.' };
 }
@@ -81,7 +84,10 @@ export async function updateNavItemAction(
   }
 
   const { error } = await supabase.from('navigation_items').update(updates).eq('id', id);
-  if (error) return { error: `Could not update item: ${error.message}` };
+  if (error) {
+    console.error('[CMS] updateNavItemAction failed:', error.message);
+    return { error: `Could not update item: ${error.message}` };
+  }
   refreshMenus();
   return { success: 'Updated.' };
 }
@@ -128,7 +134,10 @@ export async function deleteNavItemAction(id: string): Promise<NavActionState> {
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from('navigation_items').delete().eq('id', id);
-  if (error) return { error: `Could not delete item: ${error.message}` };
+  if (error) {
+    console.error('[CMS] deleteNavItemAction failed:', error.message);
+    return { error: `Could not delete item: ${error.message}` };
+  }
   refreshMenus();
   return { success: 'Deleted.' };
 }

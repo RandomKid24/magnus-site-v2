@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowDown, ArrowUp, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import type { FieldDescriptor } from '@/lib/cms/blocks/types';
 import { getPath, setPath } from '@/lib/cms/blocks/path-utils';
+import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import MediaPickerModal from './MediaPickerModal';
 import type { MediaItem } from '@/lib/cms/types';
 
@@ -91,7 +92,7 @@ function ScalarField({
           </div>
           {typeof val === 'string' && val && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={val} alt="" className="mt-2 h-20 w-auto rounded-lg border border-slate-200 object-cover" />
+            <img src={safeTransformUrl(val, 'thumbnail')} alt="" className="mt-2 h-20 w-auto rounded-lg border border-slate-200 object-cover" />
           )}
           <MediaPickerModal
             open={pickerOpen}

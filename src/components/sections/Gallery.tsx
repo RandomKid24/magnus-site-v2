@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
+import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import type { GalleryData } from '@/lib/cms/blocks/schemas';
 
 const FALLBACK: GalleryData = {
@@ -77,8 +78,9 @@ export default function Gallery({ data }: { data?: GalleryData }) {
                 className="group cursor-pointer"
               >
                 <div className="aspect-[3/4] overflow-hidden bg-zinc-950 mb-6 relative border border-white/10 shadow-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
-                    src={image.url} 
+                    src={safeTransformUrl(image.url, 'card')} 
                     alt={image.title} 
                     className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
                   />

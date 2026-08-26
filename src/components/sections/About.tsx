@@ -6,6 +6,7 @@ import { Target } from 'lucide-react';
 import { philosophy } from '../../constants';
 import { resolveIcon } from '@/components/cms/icon-map';
 import { renderInlineText } from '@/components/cms/inline-text';
+import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import type { AboutData } from '@/lib/cms/blocks/schemas';
 
 const FALLBACK: AboutData = {
@@ -121,8 +122,9 @@ export default function About({ data }: { data?: AboutData }) {
               viewport={{ once: true }}
               className="relative aspect-video bg-zinc-950 overflow-hidden border border-white/10 group shadow-2xl"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
-                src={content.image_url} 
+                src={safeTransformUrl(content.image_url, 'full')} 
                 alt="Process Precision" 
                 className="w-full h-full object-cover grayscale brightness-90 contrast-125 group-hover:scale-105 transition-transform duration-1000"
               />

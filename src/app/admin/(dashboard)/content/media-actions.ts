@@ -67,6 +67,7 @@ export async function uploadMediaAction(
       return { error: `Upload saved to Cloudinary but not registered: ${dbError.message}` };
     }
   } catch (err) {
+    console.error('[CMS] uploadMediaAction failed:', err);
     return {
       error: err instanceof Error ? err.message : 'Upload failed. Please try again.',
     };

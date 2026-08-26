@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import type { ImageData } from '@/lib/cms/blocks/schemas';
 
 export default function ImageBlock({ data }: { data: ImageData }) {
@@ -17,7 +18,7 @@ export default function ImageBlock({ data }: { data: ImageData }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- CMS URLs are arbitrary remote assets */}
           <img
-            src={data.url}
+            src={safeTransformUrl(data.url, 'full')}
             alt={data.alt || ''}
             className="w-full h-auto object-contain max-h-[720px]"
             loading="lazy"

@@ -121,6 +121,7 @@ export async function savePageAction(
     .update({ title: parsedTitle.data, slug: parsedSlug.data })
     .eq('id', pageId);
   if (pageError) {
+    console.error('[CMS] savePageAction page update failed:', pageError.code, pageError.message);
     return {
       error:
         pageError.code === '23505'
@@ -166,11 +167,17 @@ export async function setPageStatusAction(
   if (status === 'published') updates.published_at = new Date().toISOString();
 
   const { error } = await supabase.from('pages').update(updates).eq('id', pageId);
-  if (error) return { error: `Could not change status: ${error.message}` };
+  if (error) {
+    console.error('[CMS] setPageStatusAction failed:', error.code, error.message);
+    return { error: `Could not change status: ${error.message}` };
+  }
 
   // Targeted cache invalidation for the public site.
+  // Always revalidate the slug route — even when unpublishing or archiving —
+  // so the cached published version is removed and the route returns 404 or
+  // shows the archived state on next visit.
   const slug = slugForRevalidation ?? current?.slug;
-  if (slug && status !== 'draft') {
+  if (slug) {
     revalidatePath(`/${slug}`);
   }
   if (slug === 'home') {

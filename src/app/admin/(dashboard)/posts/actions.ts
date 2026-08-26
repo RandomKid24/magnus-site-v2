@@ -158,6 +158,7 @@ export async function savePostAction(
     .eq('id', postId);
 
   if (error) {
+    console.error('[CMS] savePostAction failed:', error.code, error.message);
     return {
       error:
         error.code === '23505'
@@ -197,7 +198,10 @@ export async function setPostStatusAction(
 
   const { data: current } = await supabase.from('posts').select('slug').eq('id', postId).single();
   const { error } = await supabase.from('posts').update(updates).eq('id', postId);
-  if (error) return { error: `Could not change status: ${error.message}` };
+  if (error) {
+    console.error('[CMS] setPostStatusAction failed:', error.code, error.message);
+    return { error: `Could not change status: ${error.message}` };
+  }
 
   if (current?.slug && status !== 'draft') {
     revalidatePath(`/blog/${current.slug}`);
@@ -216,7 +220,10 @@ export async function deletePostAction(postId: string): Promise<PostSaveState> {
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.from('posts').delete().eq('id', postId);
-  if (error) return { error: `Could not delete post: ${error.message}` };
+  if (error) {
+    console.error('[CMS] deletePostAction failed:', error.message);
+    return { error: `Could not delete post: ${error.message}` };
+  }
   revalidatePath('/admin/posts');
   return { success: 'Deleted.' };
 }

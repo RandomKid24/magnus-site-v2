@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -12,12 +12,13 @@ import {
   Save,
   Trash2,
   X,
-  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BLOCK_DEFINITIONS, BLOCK_TYPE_ORDER } from '@/lib/cms/blocks/definitions';
 import { savePageAction, setPageStatusAction } from './actions';
 import FieldGroup from '@/components/admin/BlockFieldsForm';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { showToast } from '@/components/admin/Toast';
 import type { MediaItem } from '@/lib/cms/types';
 
 interface EditorSection {
@@ -50,9 +51,10 @@ export default function PageEditor({
     initialSections[0]?.key ?? null
   );
   const [addOpen, setAddOpen] = useState(false);
-  const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
-  const [previewKey, setPreviewKey] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [confirmAction, setConfirmAction] = useState<{ label: string; message: string; fn: () => void } | null>(null);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selected = useMemo(
     () => sections.find((s) => s.key === selectedKey) ?? null,
@@ -102,8 +104,7 @@ export default function PageEditor({
     setSections(next);
   };
 
-  const handleSave = () => {
-    setMessage(null);
+  const handleSave = useCallback(() => {
     startTransition(async () => {
       const result = await savePageAction(
         pageId,
@@ -111,18 +112,18 @@ export default function PageEditor({
         sections.map((s) => ({ type: s.type, data: s.data }))
       );
       if (result.error) {
-        setMessage({ kind: 'error', text: result.error });
+        showToast('error', result.error);
       } else {
         setStatus(status === 'published' ? 'published' : status);
-        setMessage({ kind: 'success', text: status === 'published' ? 'Saved — live site updated.' : 'Draft saved.' });
-        setPreviewKey((k) => k + 1);
+        const now = new Date();
+        setLastSaved(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        showToast('success', status === 'published' ? 'Saved — live site updated.' : 'Draft saved.');
         router.refresh();
       }
     });
-  };
+  }, [pageId, title, slug, sections, status, router]);
 
   const handleStatusChange = (nextStatus: 'draft' | 'published' | 'archived') => {
-    setMessage(null);
     startTransition(async () => {
       // Persist current edits first so the published state matches the editor.
       const saved = await savePageAction(
@@ -131,31 +132,42 @@ export default function PageEditor({
         sections.map((s) => ({ type: s.type, data: s.data }))
       );
       if (saved.error) {
-        setMessage({ kind: 'error', text: saved.error });
+        showToast('error', saved.error);
         return;
       }
       const result = await setPageStatusAction(pageId, nextStatus, slug);
       if (result.error) {
-        setMessage({ kind: 'error', text: result.error });
+        showToast('error', result.error);
         return;
       }
       setStatus(nextStatus);
-      setMessage({
-        kind: 'success',
-        text:
-          nextStatus === 'published'
-            ? 'Published — live site updated.'
-            : `Page ${nextStatus}.`,
-      });
-      setPreviewKey((k) => k + 1);
+      showToast(
+        'success',
+        nextStatus === 'published'
+          ? 'Published — live site updated.'
+          : `Page ${nextStatus}.`
+      );
       router.refresh();
     });
   };
 
+  // Autosave: debounce saves while editing, but only if the user has made changes.
+  const sectionJson = JSON.stringify(sections);
+  const changed = title !== initialTitle || slug !== initialSlug || sectionJson !== JSON.stringify(initialSections);
+
+  useEffect(() => {
+    if (!changed || pending) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      handleSave();
+    }, 8000);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [changed, pending, handleSave]);
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(420px,560px)_1fr] gap-6 items-start">
-      {/* LEFT: editor */}
-      <div className="space-y-6 min-w-0">
+    <div className="space-y-6">
         {/* Sections list */}
         <div className="adm-card overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/60">
@@ -171,7 +183,7 @@ export default function PageEditor({
             </button>
           </div>
 
-          <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+          <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
             {sections.length === 0 && (
               <p className="px-5 py-8 text-center adm-hint">
                 No sections yet. Click “Add Section” to start building.
@@ -249,51 +261,47 @@ export default function PageEditor({
               <a href="/" target="_blank" rel="noopener noreferrer" className="adm-btn adm-btn-ghost">
                 <Eye size={15} /> View Live Site
               </a>
-              <button onClick={() => handleStatusChange('draft')} disabled={pending} className="adm-btn adm-btn-ghost">
+              <button
+                onClick={() =>
+                  setConfirmAction({
+                    label: 'Unpublish',
+                    message: 'This will remove the page from the live site. You can re-publish it later.',
+                    fn: () => handleStatusChange('draft'),
+                  })
+                }
+                disabled={pending}
+                className="adm-btn adm-btn-ghost"
+              >
                 Unpublish
               </button>
             </>
           )}
           {status !== 'archived' && (
-            <button onClick={() => handleStatusChange('archived')} disabled={pending} className="adm-btn adm-btn-ghost">
+            <button
+              onClick={() =>
+                setConfirmAction({
+                  label: 'Archive',
+                  message: 'This will archive the page. It will no longer be accessible on the live site.',
+                  fn: () => handleStatusChange('archived'),
+                })
+              }
+              disabled={pending}
+              className="adm-btn adm-btn-ghost"
+            >
               Archive
             </button>
           )}
 
-          {message && (
-            <span
-              role="status"
-              className={cn(
-                'ml-auto flex items-center gap-1.5 text-xs font-bold rounded-lg px-3 py-1.5',
-                message.kind === 'error'
-                  ? 'adm-alert-error'
-                  : 'adm-alert-success'
-              )}
-            >
-              {message.kind === 'success' && <Check size={13} />}
-              {message.text}
-            </span>
-          )}
+          <span className="ml-auto text-[11px] font-semibold text-slate-400">
+            {pending ? (
+              <span className="text-indigo-500">Saving…</span>
+            ) : lastSaved ? (
+              <span>Saved {lastSaved}</span>
+            ) : changed ? (
+              <span className="text-amber-500">Unsaved changes</span>
+            ) : null}
+          </span>
         </div>
-      </div>
-
-      {/* RIGHT: live preview */}
-      <div className="hidden xl:block xl:sticky xl:top-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="adm-label !mb-0">Live Preview <span className="normal-case">(saved state)</span></h2>
-          <a href={`/admin/preview/${pageId}`} target="_blank" rel="noopener noreferrer" className="adm-link inline-flex items-center gap-1.5">
-            <Eye size={13} /> Open Full
-          </a>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-slate-200 shadow-md h-[calc(100vh-140px)] bg-white">
-          <iframe
-            key={previewKey}
-            src={`/admin/preview/${pageId}?v=${previewKey}`}
-            title="Page preview"
-            className="w-full h-full"
-          />
-        </div>
-      </div>
 
       {/* Add-section picker */}
       {addOpen && (
@@ -305,7 +313,7 @@ export default function PageEditor({
                 <X size={20} />
               </button>
             </div>
-            <div className="overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {BLOCK_TYPE_ORDER.map((type) => {
                 const def = BLOCK_DEFINITIONS[type];
                 return (
@@ -323,6 +331,20 @@ export default function PageEditor({
           </div>
         </div>
       )}
+
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={!!confirmAction}
+        title={confirmAction?.label ?? ''}
+        message={confirmAction?.message ?? ''}
+        confirmLabel={confirmAction?.label}
+        variant="danger"
+        onConfirm={() => {
+          confirmAction?.fn();
+          setConfirmAction(null);
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }

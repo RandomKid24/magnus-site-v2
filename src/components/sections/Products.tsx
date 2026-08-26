@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { products } from '../../constants';
+import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import type { ProductsData } from '@/lib/cms/blocks/schemas';
 
 const FALLBACK: ProductsData = {
@@ -49,14 +50,15 @@ export default function Products({ data }: { data?: ProductsData }) {
               {/* Image Container with Smooth Cross-Fade */}
               <div className="absolute inset-0 z-10 opacity-70 group-hover:opacity-100 transition-all duration-500 bg-black flex items-center justify-center">
                  {/* Crop View (Default) */}
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img 
-                   src={product.image_url} 
+                   src={safeTransformUrl(product.image_url, 'card')} 
                    alt={product.title}
                    className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:opacity-0 transition-all duration-500"
                  />
-                 {/* Full View (Hover) */}
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img 
-                   src={product.image_url} 
+                   src={safeTransformUrl(product.image_url, 'card')} 
                    alt={product.title}
                    className="absolute inset-0 w-full h-full object-contain grayscale group-hover:grayscale-0 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-95 group-hover:scale-100"
                  />

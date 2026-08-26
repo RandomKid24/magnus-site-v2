@@ -56,7 +56,10 @@ export async function savePageSeoAction(
     { onConflict: 'page_id' }
   );
 
-  if (error) return { error: `Could not save SEO settings: ${error.message}` };
+  if (error) {
+    console.error('[CMS] savePageSeoAction failed:', error.code, error.message);
+    return { error: `Could not save SEO settings: ${error.message}` };
+  }
 
   const { data: page } = await supabase.from('pages').select('slug').eq('id', pageId).single();
   if (page?.slug) {

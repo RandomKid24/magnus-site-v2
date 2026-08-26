@@ -1,5 +1,6 @@
 import 'server-only';
 import { v2 as cloudinary } from 'cloudinary';
+export { type TransformPreset, transformedUrl, safeTransformUrl } from './cloudinary-utils';
 
 /**
  * Isolated Cloudinary integration. The API secret never leaves the server:
@@ -98,32 +99,4 @@ export async function destroyAsset(publicId: string, kind: 'image' | 'video' | '
   if (result.result !== 'ok' && result.result !== 'not found') {
     throw new Error(`Cloudinary delete failed with result: ${result.result}`);
   }
-}
-
-/**
- * Builds a delivery URL with transformations applied.
- * Only allows a fixed set of safe transformation presets — no free-form strings.
- */
-export type TransformPreset =
-  | 'thumbnail'
-  | 'card'
-  | 'full'
-  | 'og'
-  | 'hero';
-
-const TRANSFORMS: Record<TransformPreset, string> = {
-  thumbnail: 'c_fill,g_auto,w_400,h_300,q_auto,f_auto',
-  card: 'c_fill,g_auto,w_800,h_600,q_auto,f_auto',
-  full: 'c_limit,w_1600,q_auto,f_auto',
-  og: 'c_fill,g_auto,w_1200,h_630,q_auto,f_auto',
-  hero: 'c_fill,g_auto,w_1920,h_1080,q_auto,f_auto',
-};
-
-export function transformedUrl(secureUrl: string, preset: TransformPreset): string {
-  const marker = '/upload/';
-  const idx = secureUrl.indexOf(marker);
-  if (idx === -1) return secureUrl;
-  const head = secureUrl.slice(0, idx + marker.length);
-  const tail = secureUrl.slice(idx + marker.length);
-  return `${head}${TRANSFORMS[preset]}/${tail}`;
 }
