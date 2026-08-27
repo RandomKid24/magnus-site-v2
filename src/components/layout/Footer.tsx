@@ -184,6 +184,11 @@ export default function Footer({
               </motion.a>
             ))}
           </div>
+
+          {/* Developer Marker */}
+          <span className="font-sans text-[13px] font-bold text-white hover:text-lime transition-colors cursor-default">
+            Forged by Beforth
+          </span>
         </div>
       </div>
     </footer>
