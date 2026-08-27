@@ -20,6 +20,7 @@ export default function Navbar({
   items?: PublicNavigationItem[];
 }) {
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const [navBg, setNavBg] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState('');
 
   // Normalize CMS items into render targets (anchor ids or plain URLs).
@@ -46,8 +47,26 @@ export default function Navbar({
   }, [items]);
 
   React.useEffect(() => {
+    // Give the fixed navbar a solid background as soon as the user scrolls so
+    // content passing underneath (e.g. hero text) never shows through.
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setNavBg(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  React.useEffect(() => {
+    // Show the fixed navbar state only once the hero has fully scrolled out of
+    // view (its bottom edge passes the top of the viewport).
+    const handleScroll = () => {
+      const hero = document.getElementById('home');
+      if (!hero) {
+        setIsScrolled(window.scrollY > 50);
+        return;
+      }
+      setIsScrolled(hero.getBoundingClientRect().bottom <= 0);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
@@ -126,7 +145,7 @@ export default function Navbar({
     <>
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[5%] h-[100px] border-b transition-all duration-500 ${
-          isScrolled 
+          navBg 
             ? 'border-white/10 bg-black/95 backdrop-blur-md' 
             : 'border-white/10 bg-transparent'
         }`}
@@ -134,17 +153,26 @@ export default function Navbar({
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center gap-4"
+          className="flex items-center"
         >
-          <div className="w-12 h-12 flex items-center justify-center relative group cursor-pointer">
-            <img src="/logo.png" alt="Magnus Logo" className="w-full h-full object-contain" />
-          </div>
+          <motion.div
+            initial={false}
+            animate={{
+              width: isScrolled ? 48 : 0,
+              opacity: isScrolled ? 1 : 0,
+              marginRight: isScrolled ? 16 : 0,
+            }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="h-12 flex items-center justify-center overflow-hidden relative group cursor-pointer"
+          >
+            <img src="/logo.png" alt="Magnus Logo" className="w-12 h-12 object-contain" />
+          </motion.div>
           <div className="flex flex-col -space-y-1.5">
-            <span className={`font-space text-2xl font-bold tracking-tighter uppercase transition-colors duration-500 ${isScrolled ? 'text-white' : 'text-white'}`}>
+            <span className="font-space text-2xl font-bold tracking-tighter uppercase transition-colors duration-500 text-white">
               Magnus
             </span>
             <span className="font-sans text-[8px] font-bold tracking-[4px] uppercase text-lime">
-              Enterprises <span className={`transition-colors duration-500 ${isScrolled ? 'text-white' : 'text-white'}`}>.</span>
+              Enterprises
             </span>
           </div>
         </motion.div>

@@ -14,8 +14,8 @@ const FALLBACK: CustomersData = {
 export default function Customers({ data }: { data?: CustomersData }) {
   const content = data ?? FALLBACK;
   return (
-    <section id="customers" className="py-16 bg-black overflow-hidden border-t border-white/10">
-      <div className="container mx-auto px-6">
+    <section id="customers" className="py-20 px-[5%] bg-black overflow-hidden border-b border-white/10 scroll-mt-[100px]">
+      <div className="container-custom">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-6xl font-bold text-white uppercase tracking-tighter font-space">
             {content.title_plain} <span className="text-lime">{content.title_accent}</span>

@@ -48,11 +48,11 @@ export default function Quality({ data }: { data?: QualityData }) {
               </div>
             </motion.div>
 
-            <div className="grid sm:grid-cols-2 gap-6 mt-12 max-w-2xl mx-auto w-full">
+            <div className="grid sm:grid-cols-2 gap-6 mt-12 max-w-2xl mx-auto w-full text-left">
               {content.checklist.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 justify-center">
-                  <CheckCircle size={16} className="text-lime opacity-40 flex-shrink-0" />
-                <span className="font-sans text-sm font-bold uppercase tracking-[2px] text-white/80">{item}</span>
+                <div key={i} className="flex items-start gap-3 text-left">
+                  <CheckCircle size={16} className="text-lime opacity-40 flex-shrink-0 mt-0.5" />
+                <span className="font-sans text-sm font-bold text-white/80 whitespace-nowrap">{item}</span>
                 </div>
               ))}
             </div>

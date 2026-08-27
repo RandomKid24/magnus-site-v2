@@ -85,7 +85,9 @@ export default function MediaPickerModal({
             <form
               key={uploadFormKey}
               action={async (formData: FormData) => {
-                setUploadState(await uploadMediaAction(initialUploadState, formData));
+                const next = await uploadMediaAction(initialUploadState, formData);
+                setUploadState(next);
+                if (next.error) return;
                 setUploadOpen(false);
                 router.refresh();
               }}

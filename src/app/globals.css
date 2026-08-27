@@ -70,6 +70,10 @@
   background-size: 24px 24px;
 }
 
+.container-custom {
+  @apply max-w-7xl mx-auto w-full;
+}
+
 .will-change-transform {
   will-change: transform, opacity;
 }

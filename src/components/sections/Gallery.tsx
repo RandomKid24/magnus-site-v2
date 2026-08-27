@@ -31,7 +31,7 @@ const FALLBACK: GalleryData = {
 
 export default function Gallery({ data }: { data?: GalleryData }) {
   const content = data ?? FALLBACK;
-  const images = content.images;
+  const images = content.images.filter((img) => img.url && img.url.trim().length > 0);
 
   return (
     <section className="py-20 px-[5%] bg-black border-b border-white/10 relative overflow-hidden scroll-mt-[100px]" id="gallery">

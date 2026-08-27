@@ -39,7 +39,6 @@ export interface CmsPage {
 export interface SeoMetadata {
   id?: string;
   page_id?: string | null;
-  post_id?: string | null;
   title: string | null;
   description: string | null;
   canonical_url: string | null;
@@ -60,35 +59,6 @@ export interface NavigationItem {
   opens_in_new_tab: boolean;
   location: 'header' | 'footer';
 }
-
-export interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  content: { blocks: PostContentBlock[] };
-  cover_image_url: string | null;
-  status: ContentStatus;
-  author_id: string | null;
-  category_id: string | null;
-  created_at: string;
-  updated_at: string;
-  published_at: string | null;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-/** Structured rich-text block used inside post content. */
-export type PostContentBlock =
-  | { type: 'paragraph'; text: string }
-  | { type: 'heading'; text: string; level: 2 | 3 }
-  | { type: 'quote'; text: string }
-  | { type: 'list'; items: string[]; ordered: boolean }
-  | { type: 'image'; url: string; alt: string };
 
 export interface ProfileRow {
   id: string;

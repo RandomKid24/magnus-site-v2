@@ -47,7 +47,7 @@ export default function LoadingScreen({ onFinished }: { onFinished: () => void }
             transition={{ delay: 0.6, duration: 0.8 }}
             className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-lime"
           >
-            Enterprises <span className="text-white">.</span>
+            Enterprises
           </motion.span>
         </div>
       </div>

@@ -12,14 +12,6 @@ export interface SaveState {
   success?: string;
 }
 
-const slugSchema = z
-  .string()
-  .min(1, 'Slug is required.')
-  .max(100)
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug may only contain lowercase letters, numbers and hyphens.');
-
-const titleSchema = z.string().min(1, 'Title is required.').max(200);
-
 const sectionInputSchema = z.object({
   id: z.string().optional(),
   type: z.string().refine((t) => t in BLOCK_SCHEMAS, 'Unknown block type.'),
@@ -87,19 +79,9 @@ async function syncSections(
 
 export async function savePageAction(
   pageId: string,
-  meta: { title: string; slug: string },
   sections: { type: string; data: unknown }[]
 ): Promise<SaveState> {
   await requireRole('admin', 'editor');
-
-  const parsedTitle = titleSchema.safeParse(meta.title?.trim());
-  if (!parsedTitle.success) {
-    return { error: parsedTitle.error.issues[0].message };
-  }
-  const parsedSlug = slugSchema.safeParse(meta.slug?.trim());
-  if (!parsedSlug.success) {
-    return { error: parsedSlug.error.issues[0].message };
-  }
 
   const parsedSections = z.array(sectionInputSchema).safeParse(sections);
   if (!parsedSections.success) {
@@ -116,36 +98,64 @@ export async function savePageAction(
     .eq('id', pageId)
     .single();
 
-  const { error: pageError } = await supabase
-    .from('pages')
-    .update({ title: parsedTitle.data, slug: parsedSlug.data })
-    .eq('id', pageId);
-  if (pageError) {
-    console.error('[CMS] savePageAction page update failed:', pageError.code, pageError.message);
-    return {
-      error:
-        pageError.code === '23505'
-          ? 'A page with that address already exists.'
-          : `Could not save page: ${pageError.message}`,
-    };
-  }
-
   const sectionError = await syncSections(supabase, pageId, parsedSections.data);
   if (sectionError) return { error: sectionError };
 
   // Published pages must reflect edits on the public site immediately.
   if (current?.status === 'published') {
-    const slugs = new Set<string>([parsedSlug.data]);
-    if (current.slug) slugs.add(current.slug);
-    for (const slug of slugs) {
-      revalidatePath(`/${slug}`);
-      if (slug === 'home') revalidatePath('/');
-    }
+    const slug = current?.slug ?? 'home';
+    revalidatePath(`/${slug}`);
+    if (slug === 'home') revalidatePath('/');
   }
 
   revalidatePath('/admin/content');
   revalidatePath(`/admin/preview/${pageId}`);
   return { success: 'Saved.' };
+}
+
+export async function saveSectionAction(
+  pageId: string,
+  position: number,
+  type: string,
+  data: unknown
+): Promise<SaveState> {
+  await requireRole('admin', 'editor');
+
+  const schema = BLOCK_SCHEMAS[type];
+  if (!schema) return { error: 'Unknown block type.' };
+
+  const parsed = schema.safeParse(data ?? {});
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid section content.' };
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('page_sections')
+    .update({ data: parsed.data as Record<string, unknown> })
+    .eq('page_id', pageId)
+    .eq('position', position);
+  if (error) {
+    console.error('[CMS] saveSectionAction failed:', error.code, error.message);
+    return { error: `Could not save section: ${error.message}` };
+  }
+
+  const { data: current } = await supabase
+    .from('pages')
+    .select('slug, status')
+    .eq('id', pageId)
+    .single();
+
+  if (current?.status === 'published') {
+    const slug = current.slug ?? 'home';
+    revalidatePath(`/${slug}`);
+    if (slug === 'home') revalidatePath('/');
+  }
+
+  revalidatePath('/admin/content');
+  revalidatePath(`/admin/preview/${pageId}`);
+  return { success: 'Section saved.' };
 }
 
 export async function setPageStatusAction(

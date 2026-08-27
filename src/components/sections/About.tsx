@@ -100,14 +100,16 @@ export default function About({ data }: { data?: AboutData }) {
                   <div className="absolute -top-4 -left-4 w-6 h-6 border-t border-l border-white/10 group-hover:border-lime transition-colors duration-500"></div>
                   
                   <div className="flex flex-col gap-6 pt-4">
-                    <div className="w-12 h-12 flex items-center justify-center bg-zinc-950 border border-white/10 text-white group-hover:bg-lime group-hover:text-black transition-all duration-500">
-                      {(() => {
-                        const Icon = resolveIcon(item.icon);
-                        return <Icon size={20} />;
-                      })()}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 flex items-center justify-center bg-zinc-950 border border-white/10 text-white group-hover:bg-lime group-hover:text-black transition-all duration-500 flex-shrink-0">
+                        {(() => {
+                          const Icon = resolveIcon(item.icon);
+                          return <Icon size={20} />;
+                        })()}
+                      </div>
+                      <h4 className="font-space text-xl font-bold text-white uppercase tracking-tight">{item.title}</h4>
                     </div>
-                    <h4 className="font-space text-xl font-bold text-white uppercase tracking-tight">{item.title}</h4>
-                    <p className="font-sans text-[11px] text-zinc-400 leading-relaxed uppercase tracking-[2px] font-bold">
+                    <p className="font-sans text-[13px] text-zinc-400 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -116,6 +118,7 @@ export default function About({ data }: { data?: AboutData }) {
             </div>
             
             {/* Technical Schematic Image Container */}
+            {content.image_url && content.image_url.trim().length > 0 && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.98 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -138,6 +141,7 @@ export default function About({ data }: { data?: AboutData }) {
                 className="absolute top-0 bottom-0 w-[1px] bg-lime/30 z-10 pointer-events-none shadow-[0_0_10px_#CCFF00]"
               ></motion.div>
             </motion.div>
+            )}
           </div>
           
         </div>

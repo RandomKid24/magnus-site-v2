@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
-  Newspaper,
   Users,
+  Building2,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,11 +28,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ['admin', 'editor'],
   },
   {
-    href: '/admin/posts',
-    label: 'Blog Posts',
-    description: 'Write articles & news',
-    icon: Newspaper,
-    roles: ['admin', 'editor', 'author'],
+    href: '/admin/website',
+    label: 'Website Details',
+    description: 'Contact, social & branding',
+    icon: Building2,
+    roles: ['admin'],
   },
   {
     href: '/admin/users',

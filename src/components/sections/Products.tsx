@@ -38,7 +38,8 @@ export default function Products({ data }: { data?: ProductsData }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {content.items.map((product, i) => (
+          {content.items.map((product, i) =>
+            product.image_url && product.image_url.trim().length > 0 ? (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -64,7 +65,8 @@ export default function Products({ data }: { data?: ProductsData }) {
                  />
               </div>
             </motion.div>
-          ))}
+            ) : null
+          )}
         </div>
       </div>
     </section>

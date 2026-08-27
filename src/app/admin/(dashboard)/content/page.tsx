@@ -4,17 +4,9 @@ import { requireRole } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getSectionsByPageId, getSeoForPage } from '@/lib/cms/pages';
 import { listMedia } from '@/lib/cms/media';
-import { getSiteSettings } from '@/lib/cms/settings';
 import PageEditor from './PageEditor';
-import MenuLinksManager from '@/components/admin/MenuLinksManager';
 import SeoForm from '@/components/admin/SeoForm';
-import {
-  ContactCard,
-  SocialLinksCard,
-  BrandingCard,
-} from '@/components/admin/SiteDetailsCards';
 import { AdminPageHeader } from '@/components/admin/AdminUI';
-import type { NavigationItem } from '@/lib/cms/types';
 
 export const metadata = {
   title: 'Website Content | Magnus CMS',
@@ -26,9 +18,7 @@ export default async function AdminContentPage() {
   let home = null;
   let sections: Awaited<ReturnType<typeof getSectionsByPageId>> = [];
   let media: Awaited<ReturnType<typeof listMedia>> = [];
-  let navItems: NavigationItem[] = [];
   let seo: Awaited<ReturnType<typeof getSeoForPage>> | null = null;
-  let settings: Awaited<ReturnType<typeof getSiteSettings>> | null = null;
   let loadError: string | null = null;
 
   try {
@@ -43,20 +33,12 @@ export default async function AdminContentPage() {
     home = found ?? null;
 
     if (home) {
-      [sections, media, settings] = await Promise.all([
+      [sections, media] = await Promise.all([
         getSectionsByPageId(home.id),
         listMedia(),
-        getSiteSettings(),
       ]);
       seo = await getSeoForPage(home.id).catch(() => null);
     }
-
-    const { data: nav, error: navError } = await supabase
-      .from('navigation_items')
-      .select('*')
-      .order('position', { ascending: true });
-    if (navError) throw new Error(navError.message);
-    navItems = (nav ?? []) as NavigationItem[];
   } catch (err) {
     loadError = err instanceof Error ? err.message : 'Failed to load website content.';
   }
@@ -72,7 +54,7 @@ export default async function AdminContentPage() {
     );
   }
 
-  if (!home || !settings) {
+  if (!home) {
     return (
       <div>
         <AdminPageHeader
@@ -102,12 +84,9 @@ export default async function AdminContentPage() {
         subtitle="Everything below is your live website — edit and press Save"
       />
 
-      {/* Sections editor + live preview */}
+      {/* Sections editor */}
       <PageEditor
         pageId={home.id}
-        initialTitle={home.title}
-        initialSlug={home.slug}
-        initialStatus={home.status}
         initialSections={sections.map((s) => ({
           key: s.id,
           type: s.type,
@@ -115,22 +94,6 @@ export default async function AdminContentPage() {
         }))}
         mediaItems={media}
       />
-
-      {/* Site details cards */}
-      <div>
-        <h2 className="adm-label mb-3">Website Details</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
-          <ContactCard initial={settings.contact} />
-          <SocialLinksCard initial={settings.social} />
-          <BrandingCard initial={settings.identity} />
-        </div>
-      </div>
-
-      {/* Menu links */}
-      <div>
-        <h2 className="adm-label mb-3">Menu Links</h2>
-        <MenuLinksManager items={navItems} />
-      </div>
 
       {/* Google listing */}
       <details className="adm-card overflow-hidden group">

@@ -75,7 +75,7 @@ export default function Hero({
             transition={{ delay: 0.5, duration: 1, ease: [0.16, 1, 0.3, 1] }}
             className="font-sans text-[10px] md:text-xs font-bold tracking-[8px] md:tracking-[12px] uppercase text-lime ml-[8px] md:ml-[12px]"
           >
-            Enterprises <span className="text-white">.</span>
+            Enterprises
           </motion.span>
         </div>
 

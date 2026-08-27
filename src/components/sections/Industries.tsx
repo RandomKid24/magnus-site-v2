@@ -15,13 +15,13 @@ const FALLBACK: IndustriesData = {
 export default function Industries({ data }: { data?: IndustriesData }) {
   const content = data ?? FALLBACK;
   return (
-    <section id="industries" className="py-16 bg-black overflow-hidden border-t border-white/10">
-      <div className="container mx-auto px-6">
+    <section id="industries" className="py-20 px-[5%] bg-black overflow-hidden border-b border-white/10 scroll-mt-[100px]">
+      <div className="container-custom">
         <div className="flex flex-col lg:flex-row gap-12 mb-16 items-start">
            <div className="lg:w-1/2">
-              <div className="inline-flex items-center gap-4 mb-8">
-                 <span className="w-10 h-px bg-white/10" />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.5em]">{content.eyebrow}</span>
+               <div className="inline-flex items-center gap-4 mb-8">
+                  <div className="h-[1px] w-12 bg-lime" />
+                  <span className="font-sans text-[10px] font-bold tracking-[6px] uppercase text-gray-400">{content.eyebrow}</span>
                </div>
                <h2 className="text-5xl md:text-7xl font-bold text-white leading-[0.85] tracking-tighter uppercase">
                   {content.title_plain} <br />

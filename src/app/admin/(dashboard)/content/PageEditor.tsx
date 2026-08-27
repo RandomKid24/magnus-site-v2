@@ -1,16 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
   ArrowUp,
-  Check,
-  ChevronDown,
   ChevronRight,
   Copy,
-  Eye,
-  Globe,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -20,8 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BLOCK_DEFINITIONS, BLOCK_TYPE_ORDER } from '@/lib/cms/blocks/definitions';
-import { savePageAction, setPageStatusAction } from './actions';
-import FieldGroup from '@/components/admin/BlockFieldsForm';
+import { savePageAction } from './actions';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { showToast } from '@/components/admin/Toast';
 import type { MediaItem } from '@/lib/cms/types';
@@ -107,51 +103,29 @@ function getSectionPreview(type: string, data: Record<string, unknown>): string 
 
 export default function PageEditor({
   pageId,
-  initialTitle,
-  initialSlug,
-  initialStatus,
   initialSections,
   mediaItems,
 }: {
   pageId: string;
-  initialTitle: string;
-  initialSlug: string;
-  initialStatus: string;
   initialSections: EditorSection[];
   mediaItems: MediaItem[];
 }) {
   const router = useRouter();
-  const [title, setTitle] = useState(initialTitle);
-  const [slug, setSlug] = useState(initialSlug);
-  const [status, setStatus] = useState(initialStatus);
   const [sections, setSections] = useState<EditorSection[]>(initialSections);
-  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [confirmAction, setConfirmAction] = useState<{ label: string; message: string; fn: () => void } | null>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const editingRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const editing = useMemo(
-    () => sections.find((s) => s.key === editingKey) ?? null,
-    [sections, editingKey]
-  );
-
-  const updateEditingData = (nextData: Record<string, unknown>) => {
-    setSections((prev) =>
-      prev.map((s) => (s.key === editingKey ? { ...s, data: nextData } : s))
-    );
-  };
+  const lastSavedJsonRef = useRef(JSON.stringify({ sections: initialSections }));
 
   const addSection = (type: string) => {
     const def = BLOCK_DEFINITIONS[type];
     if (!def) return;
     const key = `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     setSections((prev) => [...prev, { key, type, data: def.defaultData() }]);
-    setEditingKey(key);
     setAddOpen(false);
   };
 
@@ -173,7 +147,6 @@ export default function PageEditor({
 
   const removeSection = (key: string) => {
     setSections((prev) => prev.filter((s) => s.key !== key));
-    if (editingKey === key) setEditingKey(null);
     setOpenMenuKey(null);
   };
 
@@ -189,50 +162,22 @@ export default function PageEditor({
     startTransition(async () => {
       const result = await savePageAction(
         pageId,
-        { title, slug },
         sections.map((s) => ({ type: s.type, data: s.data }))
       );
       if (result.error) {
         showToast('error', result.error);
       } else {
-        setStatus(status === 'published' ? 'published' : status);
         const now = new Date();
         setLastSaved(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-        showToast('success', status === 'published' ? 'Saved — live site updated.' : 'Draft saved.');
+        lastSavedJsonRef.current = JSON.stringify({ sections });
+        showToast('success', 'Saved — live site updated.');
         router.refresh();
       }
     });
-  }, [pageId, title, slug, sections, status, router]);
+  }, [pageId, sections, router]);
 
-  const handleStatusChange = (nextStatus: 'draft' | 'published' | 'archived') => {
-    startTransition(async () => {
-      const saved = await savePageAction(
-        pageId,
-        { title, slug },
-        sections.map((s) => ({ type: s.type, data: s.data }))
-      );
-      if (saved.error) {
-        showToast('error', saved.error);
-        return;
-      }
-      const result = await setPageStatusAction(pageId, nextStatus, slug);
-      if (result.error) {
-        showToast('error', result.error);
-        return;
-      }
-      setStatus(nextStatus);
-      showToast(
-        'success',
-        nextStatus === 'published'
-          ? 'Published — live site updated.'
-          : `Page ${nextStatus}.`
-      );
-      router.refresh();
-    });
-  };
-
-  const sectionJson = JSON.stringify(sections);
-  const changed = title !== initialTitle || slug !== initialSlug || sectionJson !== JSON.stringify(initialSections);
+  const currentJson = JSON.stringify({ sections });
+  const changed = currentJson !== lastSavedJsonRef.current;
 
   useEffect(() => {
     if (!changed || pending) return;
@@ -244,12 +189,6 @@ export default function PageEditor({
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     };
   }, [changed, pending, handleSave]);
-
-  useEffect(() => {
-    if (editingKey && editingRef.current) {
-      editingRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [editingKey]);
 
   // Close three-dot menu when clicking outside
   useEffect(() => {
@@ -265,29 +204,6 @@ export default function PageEditor({
 
   return (
     <div className="space-y-6">
-      {/* Page Settings */}
-      <div className="adm-card p-5">
-        <h2 className="adm-title text-base mb-4">Page Settings</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="adm-label">Page Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} className="adm-input" />
-          </div>
-          <div>
-            <label className="adm-label">Web Address</label>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-400 font-semibold">/</span>
-              <input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                maxLength={140}
-                className="adm-input flex-1"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Sections */}
       <div className="adm-card overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/60">
@@ -315,20 +231,13 @@ export default function PageEditor({
             <div className="divide-y divide-slate-100">
               {sections.map((section, index) => {
                 const def = BLOCK_DEFINITIONS[section.type];
-                const isEditing = section.key === editingKey;
                 const isMenuOpen = openMenuKey === section.key;
                 return (
                   <div key={section.key}>
                     {/* Section row */}
-                    <div
-                      className={cn(
-                        'flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors',
-                        isEditing ? 'bg-indigo-50' : 'hover:bg-slate-50'
-                      )}
-                      onClick={() => setEditingKey(isEditing ? null : section.key)}
-                    >
+                    <div className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors">
                       {/* Number + reorder */}
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs font-bold text-slate-300 w-6 text-center">{index + 1}</span>
                         <button onClick={() => moveSection(index, -1)} disabled={index === 0} className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30 transition-colors" title="Move up">
                           <ArrowUp size={14} />
@@ -340,28 +249,23 @@ export default function PageEditor({
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <p className={cn('text-sm font-bold', isEditing ? 'text-indigo-700' : 'text-slate-900')}>
+                        <p className="text-sm font-bold text-slate-900">
                           {def?.label ?? section.type}
                         </p>
-                        <p className={cn('text-xs truncate mt-0.5', isEditing ? 'text-indigo-500' : 'text-slate-400')}>
+                        <p className="text-xs truncate mt-0.5 text-slate-400">
                           {getSectionPreview(section.type, section.data)}
                         </p>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => setEditingKey(isEditing ? null : section.key)}
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all',
-                            isEditing
-                              ? 'bg-indigo-100 text-indigo-700'
-                              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
-                          )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/admin/content/sections/${index}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-all"
                         >
                           <Pencil size={13} />
-                          {isEditing ? 'Editing' : 'Edit'}
-                        </button>
+                          Edit
+                        </Link>
 
                         {/* Three-dot menu for secondary actions */}
                         <div className="relative" ref={isMenuOpen ? menuRef : undefined}>
@@ -399,35 +303,6 @@ export default function PageEditor({
                         </div>
                       </div>
                     </div>
-
-                    {/* Inline edit panel */}
-                    {isEditing && editing && (
-                      <div ref={editingRef} className="bg-indigo-50/50 border-t border-indigo-100 px-5 py-5">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                            <ChevronRight size={14} className="text-indigo-400" />
-                            <h3 className="text-sm font-bold text-indigo-700">
-                              Editing: {def?.label ?? section.type}
-                            </h3>
-                          </div>
-                          <button
-                            onClick={() => setEditingKey(null)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                          >
-                            <Check size={13} /> Done Editing
-                          </button>
-                        </div>
-                        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                          <FieldGroup
-                            key={editing.key}
-                            fields={BLOCK_DEFINITIONS[editing.type]?.fields ?? []}
-                            value={editing.data}
-                            onChange={updateEditingData}
-                            mediaItems={mediaItems}
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -454,50 +329,8 @@ export default function PageEditor({
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-md"
             >
               <Save size={16} />
-              {pending ? 'Saving…' : status === 'published' ? 'Save & Update Site' : 'Save Draft'}
+              {pending ? 'Saving…' : 'Save'}
             </button>
-
-            {status !== 'published' ? (
-              <button
-                onClick={() => handleStatusChange('published')}
-                disabled={pending}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-all shadow-md"
-              >
-                <Globe size={16} /> Publish to Live Site
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <a href="/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors">
-                  <Eye size={14} /> View Live
-                </a>
-                <button
-                  onClick={() =>
-                    setConfirmAction({
-                      label: 'Unpublish',
-                      message: 'This will remove the page from the live site. You can re-publish it later.',
-                      fn: () => handleStatusChange('draft'),
-                    })
-                  }
-                  disabled={pending}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-500 hover:text-amber-600 hover:border-amber-300 transition-colors"
-                >
-                  Unpublish
-                </button>
-                <button
-                  onClick={() =>
-                    setConfirmAction({
-                      label: 'Archive',
-                      message: 'This will archive the page. It will no longer be accessible on the live site.',
-                      fn: () => handleStatusChange('archived'),
-                    })
-                  }
-                  disabled={pending}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-300 transition-colors"
-                >
-                  Archive
-                </button>
-              </div>
-            )}
 
             <span className="ml-auto text-xs font-semibold text-slate-400">
               {pending ? (

@@ -14,8 +14,8 @@ const FALLBACK: UspsData = {
 export default function USPs({ data }: { data?: UspsData }) {
   const content = data ?? FALLBACK;
   return (
-    <section id="usps" className="py-16 bg-black overflow-hidden border-t border-white/10">
-      <div className="container mx-auto px-6">
+    <section id="usps" className="py-20 px-[5%] bg-black overflow-hidden border-b border-white/10 scroll-mt-[100px]">
+      <div className="container-custom">
         <div className="flex flex-col lg:flex-row gap-12 mb-16 items-start">
             <div className="lg:w-1/2">
                <h3 className="text-5xl md:text-6xl font-bold text-white leading-[1] tracking-tighter uppercase font-space">
