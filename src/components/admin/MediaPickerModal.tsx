@@ -1,8 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Search, UploadCloud } from 'lucide-react';
 import {
@@ -10,18 +9,6 @@ import {
   type MediaActionState,
 } from '@/app/admin/(dashboard)/content/media-actions';
 import type { MediaItem } from '@/lib/cms/types';
-
-const initialUploadState: MediaActionState = {};
-
-function UploadButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className="adm-btn adm-btn-primary !py-1.5 !px-3 text-[11px]">
-      <UploadCloud size={13} />
-      {pending ? 'Uploading…' : 'Upload'}
-    </button>
-  );
-}
 
 export default function MediaPickerModal({
   open,
@@ -37,9 +24,12 @@ export default function MediaPickerModal({
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [kindFilter, setKindFilter] = useState<'all' | 'image' | 'video'>('all');
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const [uploadState, setUploadState] = useState<MediaActionState>(initialUploadState);
-  const uploadFormKey = useMemo(() => `upload-${Date.now()}`, [uploadState]);
+  const [dragOver, setDragOver] = useState(false);
+  const [pendingFile, setPendingFile] = useState<{ file: File; preview: string } | null>(null);
+  const [altText, setAltText] = useState('');
+  const [pending, startTransition] = useTransition();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     return items.filter((m) => {
@@ -53,6 +43,43 @@ export default function MediaPickerModal({
   }, [items, query, kindFilter]);
 
   if (!open) return null;
+
+  const acceptFile = (file: File) => {
+    setUploadError(null);
+    setAltText('');
+    const isImage = file.type.startsWith('image/') && !file.type.includes('svg');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) {
+      setUploadError('Unsupported file type. Images and videos only.');
+      return;
+    }
+    const max = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > max) {
+      setUploadError(
+        `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Limit: ${max / 1024 / 1024} MB.`
+      );
+      return;
+    }
+    setPendingFile({ file, preview: isVideo ? '' : URL.createObjectURL(file) });
+  };
+
+  const startUpload = () => {
+    if (!pendingFile) return;
+    const fd = new FormData();
+    fd.append('file', pendingFile.file);
+    fd.append('altText', altText);
+    startTransition(async () => {
+      const res: MediaActionState = await uploadMediaAction({}, fd);
+      if (res.error) {
+        setUploadError(res.error);
+        return;
+      }
+      setPendingFile(null);
+      setAltText('');
+      setUploadError(null);
+      router.refresh();
+    });
+  };
 
   return (
     <div
@@ -73,63 +100,102 @@ export default function MediaPickerModal({
         </div>
 
         {/* Upload area */}
-        <div className="px-6 pt-4">
-          {!uploadOpen ? (
-            <button
-              onClick={() => setUploadOpen(true)}
-              className="w-full border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl py-3 text-sm font-semibold text-indigo-600 transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
-            >
-              <UploadCloud size={16} /> Upload a new image or video
-            </button>
-          ) : (
-            <form
-              key={uploadFormKey}
-              action={async (formData: FormData) => {
-                const next = await uploadMediaAction(initialUploadState, formData);
-                setUploadState(next);
-                if (next.error) return;
-                setUploadOpen(false);
-                router.refresh();
+        <div className="px-6 pt-4 space-y-3">
+          {!pendingFile ? (
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
               }}
-              className="border-2 border-dashed border-indigo-200 bg-indigo-50/40 rounded-xl p-4 space-y-3"
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) acceptFile(file);
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                dragOver
+                  ? 'border-indigo-500 bg-indigo-50'
+                  : 'border-indigo-200 bg-indigo-50/40 hover:border-indigo-300 hover:bg-indigo-50/70'
+              }`}
             >
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="file"
-                  name="file"
-                  required
-                  accept="image/*,video/*"
-                  className="flex-1 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:font-bold file:text-xs file:px-3 file:py-2 file:cursor-pointer cursor-pointer"
-                />
-                <input
-                  type="text"
-                  name="altText"
-                  maxLength={500}
-                  placeholder="Description (optional)"
-                  className="adm-input sm:w-56"
-                />
-                <div className="flex gap-2">
-                  <UploadButton />
-                  <button
-                    type="button"
-                    onClick={() => setUploadOpen(false)}
-                    className="adm-btn adm-btn-ghost !py-1.5 !px-3 text-[11px]"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) acceptFile(file);
+                  e.target.value = '';
+                }}
+              />
+              <div className="flex flex-col items-center justify-center py-5 px-4 text-center">
+                <UploadCloud size={18} className="text-indigo-500 mb-1.5" />
+                <p className="text-sm font-bold text-indigo-600">
+                  Drag &amp; drop an image or video, or click to browse
+                </p>
               </div>
-              {uploadState.error && (
-                <p role="alert" className="adm-alert-error inline-block">
-                  {uploadState.error}
-                </p>
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-indigo-200 bg-indigo-50/40 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+              {pendingFile.preview ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={pendingFile.preview}
+                  alt="Preview"
+                  className="h-20 w-28 rounded-lg border border-slate-200 object-cover shrink-0"
+                />
+              ) : (
+                <div className="h-20 w-28 shrink-0 rounded-lg border border-slate-200 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white">
+                  Video
+                </div>
               )}
-              {uploadState.success && (
-                <p role="status" className="adm-alert-success inline-block">
-                  {uploadState.success}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-700 truncate">{pendingFile.file.name}</p>
+                <p className="text-xs text-slate-400">
+                  {(pendingFile.file.size / 1024 / 1024).toFixed(1)} MB
                 </p>
-              )}
-            </form>
+                <input
+                  value={altText}
+                  onChange={(e) => setAltText(e.target.value)}
+                  placeholder="Description (optional)"
+                  maxLength={500}
+                  onClick={(e) => e.stopPropagation()}
+                  className="adm-input mt-2 w-full sm:w-72"
+                />
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startUpload();
+                  }}
+                  disabled={pending}
+                  className="adm-btn adm-btn-primary !py-1.5 !px-3 text-[11px]"
+                >
+                  <UploadCloud size={13} />
+                  {pending ? 'Uploading…' : 'Upload'}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPendingFile(null);
+                  }}
+                  disabled={pending}
+                  className="adm-btn adm-btn-ghost !py-1.5 !px-3 text-[11px]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {uploadError && (
+            <p role="alert" className="adm-alert-error inline-block">
+              {uploadError}
+            </p>
           )}
         </div>
 

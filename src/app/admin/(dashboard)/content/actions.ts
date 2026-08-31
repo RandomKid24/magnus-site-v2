@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requireRole } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { BLOCK_SCHEMAS } from '@/lib/cms/blocks/schemas';
+import { BLOCK_DEFINITIONS } from '@/lib/cms/blocks/definitions';
 import type { ContentStatus } from '@/lib/cms/types';
 
 export interface SaveState {
@@ -31,6 +32,38 @@ export async function getHomeContext(): Promise<{
     slug: data?.slug ?? 'home',
     status: data?.status ?? 'draft',
   };
+}
+
+export interface SidebarSection {
+  position: number;
+  type: string;
+  label: string;
+}
+
+/** Sections (with human-readable labels) for the sidebar while editing one. */
+export async function getSidebarSections(): Promise<SidebarSection[]> {
+  await requireRole('admin', 'editor');
+  const supabase = await createSupabaseServerClient();
+  const { data: home } = await supabase
+    .from('pages')
+    .select('id')
+    .eq('slug', 'home')
+    .maybeSingle();
+  if (!home) return [];
+
+  const { data } = await supabase
+    .from('page_sections')
+    .select('id, type, position')
+    .eq('page_id', home.id)
+    .order('position', { ascending: true });
+
+  return (data ?? [])
+    .map((s) => ({
+      position: s.position,
+      type: s.type,
+      label: BLOCK_DEFINITIONS[s.type]?.label ?? s.type,
+    }))
+    .sort((a, b) => a.position - b.position);
 }
 
 async function syncSections(

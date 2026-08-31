@@ -66,6 +66,14 @@ function ScalarField({
             onChange={(e) => update(e.target.value)}
             className="adm-input"
           />
+          {typeof val === 'string' && val && /\.(jpe?g|png|gif|webp|avif)(\?|$)/i.test(val) && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={safeTransformUrl(val, 'thumbnail')}
+              alt=""
+              className="mt-2 h-20 w-auto rounded-lg border border-slate-200 object-cover"
+            />
+          )}
         </div>
       );
     case 'image':

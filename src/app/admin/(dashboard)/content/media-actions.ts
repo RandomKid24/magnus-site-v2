@@ -74,6 +74,5 @@ export async function uploadMediaAction(
   }
 
   revalidatePath('/admin/content');
-  revalidatePath('/admin/posts');
   return { success: 'Uploaded — it now appears in the list below.' };
 }
