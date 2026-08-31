@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { BLOCK_DEFINITIONS, BLOCK_TYPE_ORDER } from '@/lib/cms/blocks/definitions';
 import { savePageAction } from './actions';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import Tooltip from '@/components/admin/Tooltip';
 import { showToast } from '@/components/admin/Toast';
 import type { MediaItem } from '@/lib/cms/types';
 
@@ -239,12 +240,16 @@ export default function PageEditor({
                       {/* Number + reorder */}
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs font-bold text-slate-300 w-6 text-center">{index + 1}</span>
-                        <button onClick={() => moveSection(index, -1)} disabled={index === 0} className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30 transition-colors" title="Move up">
-                          <ArrowUp size={14} />
-                        </button>
-                        <button onClick={() => moveSection(index, 1)} disabled={index === sections.length - 1} className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30 transition-colors" title="Move down">
-                          <ArrowDown size={14} />
-                        </button>
+                        <Tooltip label="Move up" placement="top">
+                          <button onClick={() => moveSection(index, -1)} disabled={index === 0} className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30 transition-colors" title="Move up">
+                            <ArrowUp size={14} />
+                          </button>
+                        </Tooltip>
+                        <Tooltip label="Move down" placement="top">
+                          <button onClick={() => moveSection(index, 1)} disabled={index === sections.length - 1} className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30 transition-colors" title="Move down">
+                            <ArrowDown size={14} />
+                          </button>
+                        </Tooltip>
                       </div>
 
                       {/* Content */}
@@ -269,13 +274,15 @@ export default function PageEditor({
 
                         {/* Three-dot menu for secondary actions */}
                         <div className="relative" ref={isMenuOpen ? menuRef : undefined}>
-                          <button
-                            onClick={() => setOpenMenuKey(isMenuOpen ? null : section.key)}
-                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
-                            title="More options"
-                          >
-                            <MoreHorizontal size={16} />
-                          </button>
+                          <Tooltip label="More options" placement="top">
+                            <button
+                              onClick={() => setOpenMenuKey(isMenuOpen ? null : section.key)}
+                              className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+                              title="More options"
+                            >
+                              <MoreHorizontal size={16} />
+                            </button>
+                          </Tooltip>
                           {isMenuOpen && (
                             <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl border border-slate-200 shadow-lg py-1 z-20">
                               <button

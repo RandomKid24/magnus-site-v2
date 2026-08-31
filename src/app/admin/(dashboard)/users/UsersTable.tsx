@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { KeyRound, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { KeyRound, Trash2, X } from 'lucide-react';
 import { setUserRoleAction, deleteUserAction, resetUserPasswordAction } from './actions';
+import Tooltip from '@/components/admin/Tooltip';
 import type { ProfileRow } from '@/lib/cms/types';
 
 const ROLE_LABELS: Record<ProfileRow['role'], string> = {
@@ -46,11 +47,31 @@ function RoleSelect({ userId, role }: { userId: string; role: ProfileRow['role']
   );
 }
 
-function ResetPasswordButton({ userId, self = false }: { userId: string; self?: boolean }) {
-  const [open, setOpen] = useState(false);
+function ResetPasswordModal({
+  userId,
+  self,
+  onClose,
+}: {
+  userId: string;
+  self: boolean;
+  onClose: () => void;
+}) {
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const submit = () => {
     setError(null);
@@ -60,57 +81,96 @@ function ResetPasswordButton({ userId, self = false }: { userId: string; self?: 
         setError(res.error);
         return;
       }
-      setOpen(false);
+      onClose();
       setValue('');
     });
   };
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        title={self ? 'Change your password' : 'Reset password'}
-        className="adm-icon-btn"
+  return (
+    <div
+      className="fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reset-password-title"
+    >
+      <div
+        className="adm-card w-full max-w-md p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
       >
-        <KeyRound size={15} />
-      </button>
-    );
-  }
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-indigo-100 text-indigo-600">
+            <KeyRound size={20} />
+          </div>
+          <div className="flex-1">
+            <h3 id="reset-password-title" className="adm-title text-lg">
+              {self ? 'Change your password' : 'Reset password'}
+            </h3>
+            <p className="adm-hint mt-1">
+              {self
+                ? 'Enter a new password for your account.'
+                : 'Enter a new password for this user. They will need it to sign in next time.'}
+            </p>
+          </div>
+          <button onClick={onClose} className="adm-icon-btn shrink-0" aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="adm-label">New password</label>
+          <input
+            ref={inputRef}
+            type="password"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Min 8 characters"
+            minLength={8}
+            maxLength={128}
+            className="adm-input"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') submit();
+            }}
+          />
+          {error && <span className="adm-alert-error inline-block">{error}</span>}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button onClick={onClose} className="adm-btn adm-btn-ghost">
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={pending || value.length < 8}
+            className="adm-btn adm-btn-primary"
+          >
+            {pending ? 'Saving…' : 'Save password'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPasswordButton({ userId, self = false }: { userId: string; self?: boolean }) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex items-center justify-end gap-1.5">
-      {error && <span className="adm-alert-error inline-block">{error}</span>}
-      <input
-        autoFocus
-        type="password"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder={self ? 'New password (min 8 chars)' : 'New password (min 8 chars)'}
-        minLength={8}
-        className="adm-input w-44 !py-1.5 text-xs"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') submit();
-        }}
-      />
-      <button
-        onClick={submit}
-        disabled={pending || value.length < 8}
-        className="adm-btn adm-btn-primary !py-1.5 !px-3 text-[11px]"
+    <>
+      <Tooltip
+        label={self ? 'Change your password' : 'Reset password'}
+        hint={self ? 'Update the password you sign in with' : 'Set a new password for this user'}
       >
-        {pending ? 'Saving…' : 'Save'}
-      </button>
-      <button
-        onClick={() => {
-          setOpen(false);
-          setValue('');
-          setError(null);
-        }}
-        className="adm-icon-btn"
-        aria-label="Cancel"
-      >
-        ✕
-      </button>
-    </div>
+        <button
+          onClick={() => setOpen(true)}
+          className="adm-icon-btn"
+          aria-label={self ? 'Change your password' : 'Reset password'}
+        >
+          <KeyRound size={15} />
+        </button>
+      </Tooltip>
+      {open && <ResetPasswordModal userId={userId} self={self} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
@@ -148,13 +208,15 @@ function DeleteButton({ userId }: { userId: string }) {
           </button>
         </>
       ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          title="Delete user"
-          className="adm-icon-btn adm-icon-btn-danger"
-        >
-          <Trash2 size={15} />
-        </button>
+        <Tooltip label="Delete user" hint="Remove this account permanently">
+          <button
+            onClick={() => setConfirming(true)}
+            title="Delete user"
+            className="adm-icon-btn adm-icon-btn-danger"
+          >
+            <Trash2 size={15} />
+          </button>
+        </Tooltip>
       )}
     </div>
   );
@@ -168,7 +230,7 @@ export default function UsersTable({
   currentUserId: string;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-clip">
       <table className="adm-table min-w-[720px]">
         <thead>
           <tr>

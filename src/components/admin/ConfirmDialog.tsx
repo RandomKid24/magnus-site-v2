@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 export default function ConfirmDialog({
   open,
@@ -60,9 +61,11 @@ export default function ConfirmDialog({
             <h3 id="confirm-dialog-title" className="adm-title text-lg">{title}</h3>
             <p className="adm-hint mt-1">{message}</p>
           </div>
-          <button onClick={onCancel} className="adm-icon-btn shrink-0" aria-label="Close">
-            <X size={18} />
-          </button>
+          <Tooltip label="Close" placement="left">
+            <button onClick={onCancel} className="adm-icon-btn shrink-0" aria-label="Close">
+              <X size={18} />
+            </button>
+          </Tooltip>
         </div>
         <div className="flex items-center justify-end gap-2 pt-2">
           <button onClick={onCancel} className="adm-btn adm-btn-ghost">

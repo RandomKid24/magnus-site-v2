@@ -8,6 +8,7 @@ import {
   uploadMediaAction,
   type MediaActionState,
 } from '@/app/admin/(dashboard)/content/media-actions';
+import Tooltip from './Tooltip';
 import type { MediaItem } from '@/lib/cms/types';
 
 export default function MediaPickerModal({
@@ -94,9 +95,11 @@ export default function MediaPickerModal({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h3 className="adm-title text-lg">Select Media</h3>
-          <button onClick={onClose} className="adm-icon-btn" aria-label="Close">
-            <X size={20} />
-          </button>
+          <Tooltip label="Close" placement="left">
+            <button onClick={onClose} className="adm-icon-btn" aria-label="Close">
+              <X size={20} />
+            </button>
+          </Tooltip>
         </div>
 
         {/* Upload area */}

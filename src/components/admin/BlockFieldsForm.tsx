@@ -6,6 +6,7 @@ import type { FieldDescriptor } from '@/lib/cms/blocks/types';
 import { getPath, setPath } from '@/lib/cms/blocks/path-utils';
 import { safeTransformUrl } from '@/lib/cloudinary-utils';
 import MediaPickerModal from './MediaPickerModal';
+import Tooltip from './Tooltip';
 import type { MediaItem } from '@/lib/cms/types';
 
 interface FieldGroupProps {
@@ -89,14 +90,16 @@ function ScalarField({
               onClick={() => setPickerOpen(true)}
               className="adm-input cursor-pointer text-slate-400"
             />
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="adm-btn adm-btn-ghost !px-3 shrink-0"
-              title="Choose from Media Library"
-            >
-              <ImageIcon size={15} />
-            </button>
+            <Tooltip label="Choose from Media Library" placement="top">
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="adm-btn adm-btn-ghost !px-3 shrink-0"
+                title="Choose from Media Library"
+              >
+                <ImageIcon size={15} />
+              </button>
+            </Tooltip>
           </div>
           {typeof val === 'string' && val && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -196,32 +199,38 @@ function ListField({
                 {String(item[field.itemLabelKey] ?? `Item ${index + 1}`) || `Item ${index + 1}`}
               </span>
               <div className="flex items-center gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => moveItem(index, -1)}
-                  disabled={index === 0}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
-                  title="Move up"
-                >
-                  <ArrowUp size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveItem(index, 1)}
-                  disabled={index === items.length - 1}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
-                  title="Move down"
-                >
-                  <ArrowDown size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeItem(index)}
-                  className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                  title="Remove"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <Tooltip label="Move up" placement="top">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, -1)}
+                    disabled={index === 0}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
+                    title="Move up"
+                  >
+                    <ArrowUp size={14} />
+                  </button>
+                </Tooltip>
+                <Tooltip label="Move down" placement="top">
+                  <button
+                    type="button"
+                    onClick={() => moveItem(index, 1)}
+                    disabled={index === items.length - 1}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
+                    title="Move down"
+                  >
+                    <ArrowDown size={14} />
+                  </button>
+                </Tooltip>
+                <Tooltip label="Remove" placement="top">
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                    title="Remove"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </Tooltip>
               </div>
             </div>
 
