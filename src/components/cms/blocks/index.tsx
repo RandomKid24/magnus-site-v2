@@ -17,8 +17,8 @@ import TextBlock from './TextBlock';
 import ImageBlock from './ImageBlock';
 import PricingBlock from './PricingBlock';
 import TestimonialsBlock from './TestimonialsBlock';
-import FaqBlock from './FaqBlock';
-import CtaBlock from './CtaBlock';
+import FAQBlock from './FAQBlock';
+import CTABlock from './CTABlock';
 import CustomBlock from './CustomBlock';
 import { parseBlockData } from '@/lib/cms/blocks/schemas';
 
@@ -55,8 +55,8 @@ const BLOCK_COMPONENTS: Record<
   image: ImageBlock,
   pricing: PricingBlock,
   testimonials: TestimonialsBlock,
-  faq: FaqBlock,
-  cta: CtaBlock,
+  faq: FAQBlock,
+  cta: CTABlock,
   custom: CustomBlock,
 } as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
 
