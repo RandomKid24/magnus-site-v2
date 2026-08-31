@@ -38,6 +38,32 @@ export async function setUserRoleAction(
   return { success: 'Role updated.' };
 }
 
+const passwordSchema = z.string().min(8, 'Password must be at least 8 characters.').max(128);
+
+/**
+ * Resets a user's password directly. Runs through the service-role client
+ * because only trusted server code with the service key may set a password;
+ * RLS deliberately blocks regular users from doing so.
+ */
+export async function resetUserPasswordAction(
+  userId: string,
+  newPassword: string
+): Promise<UserActionState> {
+  await requireRole('admin');
+
+  const parsed = passwordSchema.safeParse(newPassword);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    password: parsed.data,
+  });
+
+  if (error) return { error: `Could not reset password: ${error.message}` };
+  revalidatePath('/admin/users');
+  return { success: 'Password updated.' };
+}
+
 export async function deleteUserAction(userId: string): Promise<UserActionState> {
   const current = await requireRole('admin');
 
