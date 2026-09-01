@@ -5,8 +5,9 @@ import { getPublishedPageBySlug, getPublishedSections, getPublicSeoForPage } fro
 import { getNavigation } from '@/lib/cms/navigation';
 import { getSiteSettings } from '@/lib/cms/settings';
 
-// Public pages are statically cached and refreshed by revalidatePath on publish.
-export const revalidate = 60;
+// Public pages render fresh data on every request so saved CMS changes appear
+// immediately — no need to save twice or wait for a cache refresh.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

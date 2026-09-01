@@ -147,6 +147,118 @@ function ScalarField({
   }
 }
 
+function StringListField({
+  field,
+  items,
+  onChangeItems,
+}: {
+  field: Extract<FieldDescriptor, { kind: 'stringList' }>;
+  items: string[];
+  onChangeItems: (items: string[]) => void;
+}) {
+  const addItem = () => {
+    if (field.maxItems && items.length >= field.maxItems) return;
+    onChangeItems([...items, '']);
+  };
+
+  const removeItem = (index: number) => {
+    onChangeItems(items.filter((_, i) => i !== index));
+  };
+
+  const moveItem = (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    [next[index], next[target]] = [next[target], next[index]];
+    onChangeItems(next);
+  };
+
+  const updateItem = (index: number, value: string) => {
+    const next = [...items];
+    next[index] = value;
+    onChangeItems(next);
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-200 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+        <span className="text-xs font-bold uppercase tracking-wide text-slate-500">
+          {field.label} ({items.length})
+        </span>
+        <button
+          type="button"
+          onClick={addItem}
+          disabled={!!field.maxItems && items.length >= field.maxItems}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-sm"
+        >
+          <Plus size={14} /> Add {field.label.replace(/s$/, '')}
+        </button>
+      </div>
+
+      <div className="divide-y divide-slate-100">
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center gap-2 p-3">
+            <input
+              type="text"
+              value={item}
+              placeholder={field.placeholder ?? 'Item'}
+              maxLength={300}
+              onChange={(e) => updateItem(index, e.target.value)}
+              className="adm-input flex-1"
+            />
+            <div className="flex items-center gap-0.5 shrink-0">
+              <Tooltip label="Move up" placement="top">
+                <button
+                  type="button"
+                  onClick={() => moveItem(index, -1)}
+                  disabled={index === 0}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
+                  title="Move up"
+                >
+                  <ArrowUp size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip label="Move down" placement="top">
+                <button
+                  type="button"
+                  onClick={() => moveItem(index, 1)}
+                  disabled={index === items.length - 1}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 disabled:opacity-30 transition-colors"
+                  title="Move down"
+                >
+                  <ArrowDown size={14} />
+                </button>
+              </Tooltip>
+              <Tooltip label="Remove" placement="top">
+                <button
+                  type="button"
+                  onClick={() => removeItem(index)}
+                  className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                  title="Remove"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <div className="px-4 py-8 text-center">
+            <p className="text-sm text-slate-400 mb-3">No items yet.</p>
+            <button
+              type="button"
+              onClick={addItem}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer transition-colors shadow-sm"
+            >
+              <Plus size={14} /> Add First {field.label.replace(/s$/, '')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ListField({
   field,
   items,
@@ -267,6 +379,18 @@ export default function FieldGroup({ fields, value, onChange, mediaItems }: Fiel
   return (
     <div className="space-y-4">
       {fields.map((field) => {
+        if (field.kind === 'stringList') {
+          const raw = getPath(value, field.path);
+          const items = Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+          return (
+            <StringListField
+              key={field.path}
+              field={field}
+              items={items}
+              onChangeItems={(nextItems) => onChange(setPath(value, field.path, nextItems))}
+            />
+          );
+        }
         if (field.kind === 'list') {
           const raw = getPath(value, field.path);
           const items = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];

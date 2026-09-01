@@ -25,6 +25,13 @@ export type FieldDescriptor =
       itemFields: FieldDescriptor[];
       defaultItem: Record<string, unknown>;
       maxItems?: number;
+    }
+  | {
+      kind: 'stringList';
+      path: string;
+      label: string;
+      placeholder?: string;
+      maxItems?: number;
     };
 
 export interface BlockDefinition {

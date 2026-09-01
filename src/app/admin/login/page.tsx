@@ -11,13 +11,14 @@ export const dynamic = 'force-dynamic';
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string }>;
 }) {
   const params = await searchParams;
   const nextPath =
     typeof params.next === 'string' && params.next.startsWith('/') && !params.next.startsWith('//')
       ? params.next
       : '/admin/content';
+  const resetSuccess = params.reset === 'success';
 
   return (
     <div className="admin-ui min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
@@ -32,6 +33,11 @@ export default async function AdminLoginPage({
         </div>
 
         <div className="adm-card p-8">
+          {resetSuccess && (
+            <div role="status" className="adm-alert-success mb-5">
+              Your password was updated. Sign in with your new password.
+            </div>
+          )}
           <LoginForm nextPath={nextPath} />
         </div>
 
