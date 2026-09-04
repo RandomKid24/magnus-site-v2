@@ -14,7 +14,15 @@ import { getSiteSettings } from '@/lib/cms/settings';
 // immediately — no need to save twice or wait for a cache refresh.
 export const dynamic = 'force-dynamic';
 
-const RESERVED_SLUGS = new Set(['admin', 'api', 'blog', 'preview', 'static', '_next']);
+const RESERVED_SLUGS = new Set([
+  'admin',
+  'api',
+  'blog',
+  'preview',
+  'profile',
+  'static',
+  '_next',
+]);
 
 export async function generateMetadata({
   params,
