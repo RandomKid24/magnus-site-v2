@@ -7,6 +7,7 @@ import {
   Home,
   Users,
   Building2,
+  Inbox,
   ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,6 +39,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: 'Website Details',
     description: 'Contact, social & branding',
     icon: Building2,
+    roles: ['admin'],
+  },
+  {
+    href: '/admin/submissions',
+    label: 'Submissions',
+    description: 'Enquiries & feedback',
+    icon: Inbox,
     roles: ['admin'],
   },
   {

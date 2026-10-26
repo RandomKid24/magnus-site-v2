@@ -37,11 +37,7 @@ const FALLBACK_SETTINGS: SiteSettings = {
     email: 'magnusenterprises20@gmail.com',
     phone: '+91 77200 46700',
   },
-  social: {
-    linkedin: 'https://linkedin.com/company/magnus-enterprises',
-    twitter: 'https://twitter.com/magnus_ent',
-    facebook: 'https://facebook.com/magnus.enterprises.nashik',
-  },
+  social: {},
 };
 
 /**

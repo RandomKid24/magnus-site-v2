@@ -10,6 +10,7 @@ Apply these files in order, top to bottom, in one of two ways:
    1. `0001_init.sql` — tables, enums, indexes, triggers
    2. `0002_rls.sql` — role helpers + Row Level Security policies
    3. `0003_seed.sql` — default settings and navigation
+   4. `0004_form_submissions.sql` — website form submissions (admin inbox)
 
 ## Option B — Supabase CLI
 

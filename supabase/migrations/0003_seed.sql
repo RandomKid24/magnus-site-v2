@@ -28,9 +28,6 @@ insert into public.site_settings (key, value) values
   (
     'social',
     '{
-      "linkedin": "https://linkedin.com/company/magnus-enterprises",
-      "twitter": "https://twitter.com/magnus_ent",
-      "facebook": "https://facebook.com/magnus.enterprises.nashik"
     }'::jsonb
   )
 on conflict (key) do nothing;

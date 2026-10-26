@@ -42,7 +42,7 @@ export default async function AdminLoginPage({
         </div>
 
         <p className="text-center adm-hint mt-6">
-          Authorized personnel only · <span className="text-indigo-500 font-semibold">magnus-enterprises.com</span>
+          Authorized personnel only
         </p>
       </div>
     </div>

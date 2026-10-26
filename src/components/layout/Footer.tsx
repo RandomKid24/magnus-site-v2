@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'motion/react';
 import { Linkedin, Twitter, Facebook, ArrowUpRight, ShieldCheck, Mail, Phone, MapPin } from 'lucide-react';
 import { contactInfo } from '../../constants';
@@ -45,20 +46,11 @@ export default function Footer({
     });
   }, [items]);
 
-  const cmsSocials = [
+  const socials = [
     ...(social?.linkedin ? [{ Icon: Linkedin, href: social.linkedin }] : []),
     ...(social?.twitter ? [{ Icon: Twitter, href: social.twitter }] : []),
     ...(social?.facebook ? [{ Icon: Facebook, href: social.facebook }] : []),
   ];
-  // Fall back to the original set when the CMS has no social settings.
-  const socials =
-    cmsSocials.length > 0
-      ? cmsSocials
-      : [
-          { Icon: Linkedin, href: 'https://linkedin.com/company/magnus-enterprises' },
-          { Icon: Twitter, href: 'https://twitter.com/magnus_ent' },
-          { Icon: Facebook, href: 'https://facebook.com/magnus.enterprises.nashik' },
-        ];
 
   return (
     <footer className="relative py-24 px-[5%] bg-black text-white border-t border-white/10 overflow-hidden">
@@ -168,8 +160,14 @@ export default function Footer({
             © 2026 Magnus Enterprises | Nashik, India | ISO 9001:2015
           </span>
 
-          {/* Socials */}
+          {/* Legal */}
           <div className="flex gap-6">
+            <Link href="/privacy-policy" className="footer-link">Privacy Policy</Link>
+            <Link href="/terms" className="footer-link">Terms &amp; Conditions</Link>
+          </div>
+
+          {/* Socials */}
+          {socials.length > 0 && <div className="flex gap-6">
             {socials.map(({ Icon, href }, i) => (
               <motion.a 
                 key={i} 
@@ -183,7 +181,7 @@ export default function Footer({
                 <Icon size={16} />
               </motion.a>
             ))}
-          </div>
+          </div>}
 
           {/* Developer Marker */}
           <span className="font-sans text-[13px] font-bold text-white hover:text-lime transition-colors cursor-default">

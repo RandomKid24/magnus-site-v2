@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { BusinessProfile } from '@/lib/profile/data';
 import { recordProfileViewAction } from '@/app/profile/actions';
+import { submitFormAction } from '@/app/actions/submit-form';
 
 const RATING_LABELS = ['Excellent', 'Very Good', 'Average', 'Poor', 'Terrible'] as const;
 
@@ -53,6 +54,9 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
   const [feedbackState, setFeedbackState] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [enquiryService, setEnquiryService] = useState('');
   const [enquiryMessage, setEnquiryMessage] = useState('');
+  const [enquiryName, setEnquiryName] = useState('');
+  const [enquiryPhone, setEnquiryPhone] = useState('');
+  const [formError, setFormError] = useState(false);
   const [enquiryState, setEnquiryState] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [sharePhone, setSharePhone] = useState('');
   const [profileUrl, setProfileUrl] = useState('/profile');
@@ -114,18 +118,30 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
     a.click();
   };
 
-  const submitFeedback = (e: React.FormEvent) => {
+  const submitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
     if (feedbackRating === null) return;
     setFeedbackState('submitting');
-    window.setTimeout(() => setFeedbackState('success'), 900);
+    setFormError(false);
+    const { ok } = await submitFormAction({ source: 'profile_feedback', rating: feedbackRating });
+    setFeedbackState(ok ? 'success' : 'idle');
+    if (!ok) setFormError(true);
   };
 
-  const submitEnquiry = (e: React.FormEvent) => {
+  const submitEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!enquiryService) return;
     setEnquiryState('submitting');
-    window.setTimeout(() => setEnquiryState('success'), 900);
+    setFormError(false);
+    const { ok } = await submitFormAction({
+      source: 'profile_enquiry',
+      name: enquiryName,
+      phone: enquiryPhone,
+      service: enquiryService,
+      message: enquiryMessage,
+    });
+    setEnquiryState(ok ? 'success' : 'idle');
+    if (!ok) setFormError(true);
   };
 
   const shareToNumber = () => {
@@ -331,7 +347,7 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
                   animate={{ opacity: 1 }}
                   className="flex items-center gap-2 text-lime font-sans text-xs font-bold py-6"
                 >
-                  <CheckCircle2 size={16} /> Success: Feedback Given Successfully.
+                  <CheckCircle2 size={16} /> Thank you for your feedback!
                 </motion.div>
               ) : (
                 <motion.form
@@ -365,12 +381,17 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
                       );
                     })}
                   </div>
+                  {formError && (
+                    <p role="alert" className="font-sans text-[10px] text-red-400">
+                      Something went wrong. Please try again or contact us directly.
+                    </p>
+                  )}
                   <button
                     type="submit"
                     disabled={feedbackRating === null || feedbackState === 'submitting'}
                     className="w-full bg-white text-brand-dark font-bold text-[10px] tracking-[2px] uppercase px-4 py-3 transition-colors hover:bg-lime disabled:opacity-50"
                   >
-                    {feedbackState === 'submitting' ? 'Processing...' : 'Submit Feedback'}
+                    {feedbackState === 'submitting' ? 'Sending...' : 'Submit Feedback'}
                   </button>
                 </motion.form>
               )}
@@ -400,6 +421,23 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
                   animate={{ opacity: 1 }}
                   className="space-y-4"
                 >
+                  <input
+                    value={enquiryName}
+                    onChange={(e) => setEnquiryName(e.target.value)}
+                    required
+                    maxLength={120}
+                    placeholder="Your name"
+                    className={fieldClass}
+                  />
+                  <input
+                    type="tel"
+                    value={enquiryPhone}
+                    onChange={(e) => setEnquiryPhone(e.target.value)}
+                    required
+                    maxLength={30}
+                    placeholder="Phone / WhatsApp number"
+                    className={fieldClass}
+                  />
                   <select
                     value={enquiryService}
                     onChange={(e) => setEnquiryService(e.target.value)}
@@ -425,6 +463,15 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
                     placeholder="Describe your requirement..."
                     className={`${fieldClass} resize-none`}
                   />
+                  {formError && (
+                    <p role="alert" className="font-sans text-[10px] text-red-400">
+                      Something went wrong. Please try again or contact us directly.
+                    </p>
+                  )}
+                  <p className="font-sans text-[10px] text-gray-500 leading-relaxed">
+                    By sending, you agree we may use your details to respond to your enquiry. See our{' '}
+                    <Link href="/privacy-policy" className="text-lime underline underline-offset-2">Privacy Policy</Link>.
+                  </p>
                   <button
                     type="submit"
                     disabled={!enquiryService || enquiryState === 'submitting'}
@@ -522,6 +569,10 @@ export default function ProfilePage({ profile }: { profile: BusinessProfile }) {
           <Link href="/" className="footer-link inline-block text-[10px]">
             Website home
           </Link>
+          <div className="mt-3 flex justify-center gap-4">
+            <Link href="/privacy-policy" className="footer-link inline-block text-[10px]">Privacy</Link>
+            <Link href="/terms" className="footer-link inline-block text-[10px]">Terms</Link>
+          </div>
         </div>
       </div>
     </main>

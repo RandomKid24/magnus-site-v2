@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { contactInfo } from '../../constants';
+import { submitFormAction } from '@/app/actions/submit-form';
 import type { ContactData } from '@/lib/cms/blocks/schemas';
 
 const FALLBACK: ContactData = {
@@ -22,11 +24,24 @@ export default function Contact({
   const content = data ?? FALLBACK;
   const info = contact ?? contactInfo;
   const [formState, setFormState] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [error, setError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const f = new FormData(e.currentTarget);
     setFormState('submitting');
-    setTimeout(() => setFormState('success'), 1500);
+    setError(false);
+    const { ok } = await submitFormAction({
+      source: 'contact',
+      name: `${f.get('first')} ${f.get('last')}`,
+      email: String(f.get('email')),
+      message: String(f.get('message')),
+    });
+    if (ok) setFormState('success');
+    else {
+      setError(true);
+      setFormState('idle');
+    }
   };
 
   return (
@@ -61,7 +76,7 @@ export default function Contact({
                     <Mail size={20} className="text-white" />
                   </div>
                   <div>
-                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Email Baseline</span>
+                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Email</span>
                     <a href={`mailto:${info.email}`} className="font-space text-xl text-white hover:text-lime transition-colors">{info.email}</a>
                   </div>
                 </div>
@@ -71,7 +86,7 @@ export default function Contact({
                     <Phone size={20} className="text-white" />
                   </div>
                   <div>
-                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Direct Line</span>
+                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Phone</span>
                     <a href={`tel:${info.phone.replace(/\s/g, '')}`} className="font-space text-xl text-white hover:text-lime transition-colors">{info.phone}</a>
                   </div>
                 </div>
@@ -81,7 +96,7 @@ export default function Contact({
                     <MapPin size={20} className="text-white" />
                   </div>
                   <div>
-                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Base Operations</span>
+                    <span className="font-sans text-[10px] font-bold text-gray-400 tracking-[3px] uppercase block mb-2">Address</span>
                     <p className="font-sans text-xs text-gray-400 leading-relaxed uppercase tracking-widest font-bold max-w-xs">{info.address}</p>
                   </div>
                 </div>
@@ -101,13 +116,13 @@ export default function Contact({
                     <div className="w-20 h-20 bg-lime rounded-full flex items-center justify-center mb-8">
                       <CheckCircle2 size={40} className="text-white" />
                     </div>
-                    <h3 className="font-space text-3xl font-bold text-white mb-4 uppercase tracking-tighter">Transmission Received</h3>
-                    <p className="font-sans text-xs text-gray-400 uppercase tracking-widest font-bold leading-relaxed">Our engineering team will review your specifications and contact you shortly.</p>
+                    <h3 className="font-space text-3xl font-bold text-white mb-4 uppercase tracking-tighter">Message Sent</h3>
+                    <p className="font-sans text-xs text-gray-400 uppercase tracking-widest font-bold leading-relaxed">Thank you! We have received your message and will get back to you soon.</p>
                     <button 
                       onClick={() => setFormState('idle')}
                       className="mt-10 font-space text-[10px] font-bold text-lime hover:text-white transition-colors tracking-[4px] uppercase underline underline-offset-8"
                     >
-                      New Submission
+                      Send another message
                     </button>
                   </motion.div>
                 ) : (
@@ -119,26 +134,35 @@ export default function Contact({
                     <div className="grid sm:grid-cols-2 gap-10">
                       <div className="space-y-4">
                         <label className="font-sans text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">First Name</label>
-                        <input required type="text" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="John" />
+                        <input required name="first" maxLength={60} type="text" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="John" />
                       </div>
                       <div className="space-y-4">
                         <label className="font-sans text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">Last Name</label>
-                        <input required type="text" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="Doe" />
+                        <input required name="last" maxLength={60} type="text" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="Doe" />
                       </div>
                     </div>
                     <div className="space-y-4">
                       <label className="font-sans text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">Email Address</label>
-                      <input required type="email" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="john@enterprise.com" />
+                      <input required name="email" type="email" className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm placeholder:text-white/30" placeholder="you@example.com" />
                     </div>
                     <div className="space-y-4">
                       <label className="font-sans text-[10px] font-bold text-gray-400 tracking-[4px] uppercase">Project Description</label>
-                      <textarea required rows={4} className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm resize-none placeholder:text-white/30" placeholder="Describe your manufacturing requirements..." />
+                      <textarea required name="message" maxLength={4000} rows={4} className="w-full bg-transparent border-b border-white/10 py-4 text-white focus:outline-none focus:border-lime transition-colors font-sans text-sm resize-none placeholder:text-white/30" placeholder="Tell us what you need made..." />
                     </div>
+                    <p className="font-sans text-[11px] text-gray-500 leading-relaxed">
+                      By sending this form you agree that Magnus Enterprises may use your name, email and message to respond to your enquiry. See our{' '}
+                      <Link href="/privacy-policy" className="text-lime underline underline-offset-2">Privacy Policy</Link>.
+                    </p>
+                    {error && (
+                      <p role="alert" className="font-sans text-xs text-red-400">
+                        Something went wrong. Please try again or email us directly.
+                      </p>
+                    )}
                     <button 
                       disabled={formState === 'submitting'}
                       className="btn-primary-custom w-full flex items-center justify-center gap-4 group"
                     >
-                      {formState === 'submitting' ? 'Processing...' : (
+                      {formState === 'submitting' ? 'Sending...' : (
                         <>
                           Send Message
                           <Send size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
